@@ -1,0 +1,22 @@
+display_information:
+  name: NWS Alerts Bot
+features:
+  bot_user:
+    display_name: NWS Alerts Bot
+    always_online: true
+  slash_commands:
+    - command: /alert
+      url: https://example.com/slack/events
+      description: Monitor a state for alerts
+      usage_hint: state_abbreviation
+      should_escape: false
+oauth_config:
+  redirect_urls:
+    - https://example.com/oauth_redirect
+  scopes:
+    bot:
+      - commands
+settings:
+  org_deploy_enabled: false
+  socket_mode_enabled: false
+  token_rotation_enabled: false
