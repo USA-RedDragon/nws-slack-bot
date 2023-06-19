@@ -1,0 +1,12 @@
+.gitignore
+.dockerignore
+config.json
+config.json.example
+Dockerfile
+logo.png
+manifest.yml
+PRIVACY.md
+README.md
+venv/
+__pycache__/
+data/
