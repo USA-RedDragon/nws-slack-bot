@@ -9,6 +9,4 @@ fi
 # Put CONFIG_JSON into config.json
 echo -e $CONFIG_JSON > /app/config.json
 
-cat /app/config.json
-
-exec python /app/src/main.py
+exec $@

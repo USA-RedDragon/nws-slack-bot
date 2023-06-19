@@ -6,7 +6,7 @@ COPY requirements.txt requirements.txt
 
 RUN pip install -r requirements.txt
 
-COPY . .
+COPY src/ src/
 
 ENV CONFIG_JSON ""
 
@@ -15,4 +15,4 @@ RUN chmod a+x /entrypoint.sh
 
 VOLUME [ "/app/data" ]
 
-ENTRYPOINT [ "/entrypoint.sh" ]
+ENTRYPOINT [ "/entrypoint.sh", "--", "python", "/app/src/main.py" ]
