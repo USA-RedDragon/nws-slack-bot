@@ -1,5 +1,22 @@
 display_information:
   name: NWS Alerts Bot
+  description: Sends NWS alerts for your state to Slack
+  background_color: "#1E1E1E"
+  long_description: "Sends NWS alerts for your state to Slack.\r
+
+    \r
+
+    Usage:\r
+
+    \r
+
+    1. Add the bot to Slack using the link above\r
+
+    2. Once the bot is installed in your workspace, invite it to any channels you'd like to receive statewide alerts for. This can be done by mentioning the bot and when Slack asks you to invite the bot, accept.\r
+
+    3. Send in the channel (or to the bot directly) the command `/alert state` where `state` is a two-letter state abbreviation. For example, `/alert OK`.\r
+
+    4. The bot will start sending alerts to all channels it is invited to."
 features:
   bot_user:
     display_name: NWS Alerts Bot
