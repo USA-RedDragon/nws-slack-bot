@@ -66,14 +66,94 @@ app = App(
 )
 
 
+def is_state_valid(state):
+    ret = True
+    reason = ""
+    state = state.upper()
+    if len(state) != 2:
+        ret = False
+        reason = "State must be two letters"
+    elif not state.isalpha():
+        ret = False
+        reason = "State must be letters only"
+    elif not state.isupper():
+        ret = False
+        reason = "State must be uppercase"
+    elif state not in [
+        "AL",
+        "AK",
+        "AS",
+        "AR",
+        "AZ",
+        "CA",
+        "CO",
+        "CT",
+        "DE",
+        "DC",
+        "FL",
+        "GA",
+        "GU",
+        "HI",
+        "ID",
+        "IL",
+        "IN",
+        "IA",
+        "KS",
+        "KY",
+        "LA",
+        "ME",
+        "MD",
+        "MA",
+        "MI",
+        "MN",
+        "MS",
+        "MO",
+        "MT",
+        "NE",
+        "NV",
+        "NH",
+        "NJ",
+        "NM",
+        "NY",
+        "NC",
+        "ND",
+        "OH",
+        "OK",
+        "OR",
+        "PA",
+        "PR",
+        "RI",
+        "SC",
+        "SD",
+        "TN",
+        "TX",
+        "UT",
+        "VT",
+        "VI",
+        "VA",
+        "WA",
+        "WV",
+        "WI",
+        "WY",
+        "MP",
+        "PW",
+        "FM",
+        "MH",
+    ]:
+        ret = False
+        reason = "State must be a valid US state"
+    return ret, reason
+
+
 @app.command("/alert")
 def start_command(ack, say, command):
     ack()
     if 'text' not in command:
         say("Please specify a state to watch for alerts in.")
         return
-    elif len(command['text']) != 2:
-        say("Please specify a two-letter state to watch for alerts in.")
+    valid, reason = is_state_valid(command['text'])
+    if not valid:
+        say(reason)
         return
     with Session(get_engine()) as session:
         # Find the installation and update the bot_started flag and state
