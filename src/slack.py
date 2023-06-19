@@ -7,9 +7,10 @@ from orm import Installation
 
 from sqlalchemy.orm import Session
 from slack_bolt import App
+from slack_sdk.oauth import OAuthStateUtils
 from slack_bolt.oauth.oauth_settings import OAuthSettings
-from slack_sdk.oauth.installation_store import FileInstallationStore
-from slack_sdk.oauth.state_store import FileOAuthStateStore
+from slack_sdk.oauth.installation_store.sqlalchemy import SQLAlchemyInstallationStore
+from slack_sdk.oauth.state_store.sqlalchemy import SQLAlchemyOAuthStateStore
 from slack_bolt.oauth.callback_options import CallbackOptions, SuccessArgs, FailureArgs
 from slack_sdk.errors import SlackApiError
 from slack_bolt import BoltResponse
@@ -47,6 +48,16 @@ def _failure(args: FailureArgs) -> BoltResponse:
     return BoltResponse(status=args.suggested_status_code, body=args.reason)
 
 
+_state_store = SQLAlchemyOAuthStateStore(
+    engine=get_engine(),
+    expiration_seconds=OAuthStateUtils.default_expiration_seconds,
+)
+
+_installation_store = SQLAlchemyInstallationStore(
+    engine=get_engine(),
+    client_id=get_config().get("slack", "client_id"),
+)
+
 oauth_settings = OAuthSettings(
     client_id=get_config().get("slack", "client_id"),
     client_secret=get_config().get("slack", "client_secret"),
@@ -55,10 +66,20 @@ oauth_settings = OAuthSettings(
     install_path="/install",
     redirect_uri_path="/oauth_redirect",
     redirect_uri=get_config().get("server", "base_url") + "/oauth_redirect",
-    installation_store=FileInstallationStore(base_dir="./data/installations"),
-    state_store=FileOAuthStateStore(expiration_seconds=600, base_dir="./data/states"),
+    installation_store=_installation_store,
+    state_store=_state_store,
     callback_options=CallbackOptions(success=_success, failure=_failure),
 )
+
+try:
+    get_engine().execute("select count(*) from slack_oauth_states")
+except Exception:
+    _state_store.metadata.create_all(get_engine())
+
+try:
+    get_engine().execute("select count(*) from slack_installations")
+except Exception:
+    _installation_store.metadata.create_all(get_engine())
 
 app = App(
     signing_secret=get_config().get("slack", "signing_secret"),
