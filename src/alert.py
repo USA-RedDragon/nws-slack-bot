@@ -2,10 +2,12 @@ import json
 import sys
 import traceback
 
+from config import get_config
 from db import get_engine
 from orm import Installation
-from wx import Polygon
 
+import requests
+from shapely.geometry import shape, Polygon, MultiPolygon
 from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
 from sqlalchemy.orm import Session
@@ -18,9 +20,9 @@ class WXAlert():
             raise ValueError('Invalid GeoJSON Feature')
         self.id = feature_json['properties']['id']
         if 'geometry' in feature_json and feature_json['geometry'] is not None:
-            self.polygon = Polygon(feature_json['geometry'])
+            self.polygon = shape(feature_json['geometry'])
         else:
-            self.polygon = None  # self._get_polygon_from_geocode(feature_json['properties']['geocode'])
+            self.polygon = self._make_multipolygon(feature_json['properties']['affectedZones'])
         self.sent = feature_json['properties']['sent']
         self.expires = feature_json['properties']['expires']
         self.effective = feature_json['properties']['effective']
@@ -42,6 +44,36 @@ class WXAlert():
         if 'maxWindSpeed' in feature_json['properties']['parameters']:
             self.max_wind_speed = feature_json['properties']['parameters']['maxWindSpeed']
         self.state = state
+
+    def _make_multipolygon(self, affected_zones):
+        ugcs_polygons = []
+        for zone in affected_zones:
+            poly = self._get_polygon_from_url(zone)
+            if type(poly) == Polygon:
+                ugcs_polygons.append(poly)
+            elif type(poly) == MultiPolygon:
+                for geom in poly.geoms:
+                    ugcs_polygons.append(geom)
+        return MultiPolygon([poly for poly in ugcs_polygons])
+
+    def _get_polygon_from_url(self, url):
+        response = requests.get(
+            url,
+            headers={
+                'Accept': 'application/geo+json',
+                'User-Agent': get_config().get('nws', 'user_agent')
+            }
+        )
+        if response.status_code != 200:
+            raise ValueError('Failed to get polygon')
+        res = response.json()
+        if 'geometry' not in res or res['geometry'] is None:
+            raise ValueError('Invalid polygon')
+        if 'coordinates' not in res['geometry'] or (res['geometry']['type'] != "Polygon" and res['geometry']['type'] != "MultiPolygon"):
+            print(res)
+            print(url)
+            raise ValueError('Invalid polygon')
+        return shape(res['geometry'])
 
     def __str__(self):
         return f"{self.headline}\n\n" + \
