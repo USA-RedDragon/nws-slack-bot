@@ -21,8 +21,6 @@ class WXAlert():
             for geom in self.polygon.geoms:
                 xs, ys = geom.exterior.xy
                 ax.fill(xs, ys, color='red', linewidth=0.5, zorder=1)
-                # Draw a red outline around the polygon, at zorder 5
-                ax.plot(xs, ys, color='red', linewidth=0.5, zorder=5)
 
     def __init__(self, feature_json, state):
         self._feature_json = feature_json
