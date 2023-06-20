@@ -7,7 +7,7 @@ from db import get_engine
 from orm import Installation
 
 import requests
-from shapely.geometry import shape, Polygon, MultiPolygon
+from shapely.geometry import shape, Polygon, MultiPolygon, GeometryCollection
 from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
 from sqlalchemy.orm import Session
@@ -62,6 +62,16 @@ class WXAlert():
             elif type(poly) == MultiPolygon:
                 for geom in poly.geoms:
                     ugcs_polygons.append(geom)
+            elif type(poly) == GeometryCollection:
+                for geom in poly.geoms:
+                    if type(geom) == Polygon:
+                        ugcs_polygons.append(geom)
+                    elif type(geom) == MultiPolygon:
+                        for geom2 in geom.geoms:
+                            ugcs_polygons.append(geom2)
+                    else:
+                        print(geom)
+                        raise ValueError('Invalid polygon')
         return MultiPolygon([poly for poly in ugcs_polygons])
 
     def _get_polygon_from_url(self, url):
@@ -77,7 +87,8 @@ class WXAlert():
         res = response.json()
         if 'geometry' not in res or res['geometry'] is None:
             raise ValueError('Invalid polygon')
-        if 'coordinates' not in res['geometry'] or (res['geometry']['type'] != "Polygon" and res['geometry']['type'] != "MultiPolygon"):
+        if ('coordinates' not in res['geometry'] and (res['geometry']['type'] != "Polygon" or res['geometry']['type'] != "MultiPolygon")) \
+                and (res['geometry']['type'] != "GeometryCollection"):
             print(res)
             print(url)
             raise ValueError('Invalid polygon')
