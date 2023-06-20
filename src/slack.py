@@ -90,7 +90,6 @@ app = App(
 def is_state_valid(state):
     ret = True
     reason = ""
-    state = state.upper()
     if len(state) != 2:
         ret = False
         reason = "State must be two letters"
@@ -172,7 +171,8 @@ def start_command(ack, say, command):
     if 'text' not in command:
         say("Please specify a state to watch for alerts in.")
         return
-    valid, reason = is_state_valid(command['text'])
+    state = command['text'].upper()
+    valid, reason = is_state_valid(state)
     if not valid:
         say(reason)
         return
@@ -185,8 +185,8 @@ def start_command(ack, say, command):
             say("Please install the app first.")
             return
         installation.bot_started = True
-        installation.state = command['text']
+        installation.state = state
         session.commit()
-    say(f"Starting to watch for alerts in {command['text']}...")
+    say(f"Starting to watch for alerts in {state}...")
     from wx import WXWatcher, get_wx_watcher_manager
-    get_wx_watcher_manager().add_and_start_watcher(WXWatcher(state=command['text']))
+    get_wx_watcher_manager().add_and_start_watcher(WXWatcher(state=state))
