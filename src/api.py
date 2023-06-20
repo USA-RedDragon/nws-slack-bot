@@ -7,18 +7,8 @@ from config import get_config
 from db import get_engine
 from orm import ActiveAlerts, Installation
 
-import geojson
 from sqlalchemy.orm import Session
 import requests
-
-
-class Polygon():
-    def __init__(self, polygon_json):
-        self._polygon_json = polygon_json
-        if 'type' not in polygon_json or polygon_json['type'] != 'Polygon':
-            raise ValueError('Invalid GeoJSON Polygon')
-        self._coordinates = polygon_json['coordinates']
-
 
 _wx_watcher_manager = None
 
@@ -65,7 +55,7 @@ class WXWatcher():
                 'User-Agent': get_config().get('nws', 'user_agent')
             }
         )
-        return geojson.loads(response.text)
+        return response.json()
 
     def _seen_alert(self, alert):
         with Session(get_engine()) as session:
@@ -135,12 +125,7 @@ class WXWatcher():
                 alerts = self._get_alerts()
                 for alert in alerts:
                     from alert import send_alert
-                    # Do something with alert
                     send_alert(alert)
-                    # slack_app.client.chat_postMessage(
-                    #     channel='#random',
-                    #     text=str(alert)
-                    # )
                     print(alert)
                 time.sleep(30)
         except Exception as e:

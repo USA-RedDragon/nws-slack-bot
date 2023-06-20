@@ -188,5 +188,5 @@ def start_command(ack, say, command):
         installation.state = state
         session.commit()
     say(f"Starting to watch for alerts in {state}...")
-    from wx import WXWatcher, get_wx_watcher_manager
+    from api import WXWatcher, get_wx_watcher_manager
     get_wx_watcher_manager().add_and_start_watcher(WXWatcher(state=state))

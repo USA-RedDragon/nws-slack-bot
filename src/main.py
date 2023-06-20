@@ -4,7 +4,7 @@ import traceback
 import config
 from db import get_engine
 from slack import app
-from wx import get_wx_watcher_manager
+from api import get_wx_watcher_manager
 
 
 def main():
