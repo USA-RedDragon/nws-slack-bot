@@ -21,4 +21,4 @@ def slack_install():
 
 @app.route("/health", methods=["GET"])
 def health():
-    return time.time()
+    return str(time.time())
