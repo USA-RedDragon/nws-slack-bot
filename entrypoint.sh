@@ -11,6 +11,6 @@ fi
 # Put CONFIG_JSON into config.json
 echo -e $CONFIG_JSON > /app/config.json
 
-gunicorn --worker-tmp-dir /dev/shm -D -w 2 -b 0.0.0.0:3000 'src.server:app' --log-file=/tmp/gunicorn.log
+gunicorn --worker-tmp-dir /dev/shm -D -w 2 -b 0.0.0.0:3000 'src.server:app' --log-file=/dev/shm/gunicorn.log
 python -m src.main 2>&1 | tee /dev/null &
-tail -f /tmp/gunicorn.log
+tail -f /dev/shm/gunicorn.log
