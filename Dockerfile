@@ -2,7 +2,7 @@ FROM python:3.11-alpine
 
 WORKDIR /app
 
-RUN apk add --no-cache build-base proj-util geos-dev proj-dev
+RUN apk add --no-cache build-base proj-util geos-dev proj-dev curl
 
 COPY requirements.txt requirements.txt
 
