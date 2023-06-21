@@ -3,3 +3,4 @@ slack-bolt==1.18.0
 SQLAlchemy==2.0.16
 shapely==2.0.1
 matplotlib==3.7.1
+boto3==1.26.157

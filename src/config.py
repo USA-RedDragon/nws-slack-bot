@@ -13,6 +13,9 @@ _default_config = {
     'nws': {
         'user_agent': '',
     },
+    's3': {
+        'bucket': '',
+    }
 }
 
 

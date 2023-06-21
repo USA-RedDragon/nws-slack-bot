@@ -5,12 +5,13 @@ from config import get_config
 from db import get_engine
 from orm import Installation
 
+import boto3
 from sqlalchemy.orm import Session
 from slack_bolt import App
 from slack_sdk.oauth import OAuthStateUtils
 from slack_bolt.oauth.oauth_settings import OAuthSettings
-from slack_sdk.oauth.installation_store.sqlalchemy import SQLAlchemyInstallationStore
-from slack_sdk.oauth.state_store.sqlalchemy import SQLAlchemyOAuthStateStore
+from slack_sdk.oauth.installation_store.amazon_s3 import AmazonS3InstallationStore
+from slack_sdk.oauth.state_store.amazon_s3 import AmazonS3OAuthStateStore
 from slack_bolt.oauth.callback_options import CallbackOptions, SuccessArgs, FailureArgs
 from slack_sdk.errors import SlackApiError
 from slack_bolt import BoltResponse
@@ -48,13 +49,15 @@ def _failure(args: FailureArgs) -> BoltResponse:
     return BoltResponse(status=args.suggested_status_code, body=args.reason)
 
 
-_state_store = SQLAlchemyOAuthStateStore(
-    engine=get_engine(),
+_state_store = AmazonS3OAuthStateStore(
+    s3_client=boto3.client("s3"),
+    bucket_name=get_config().get("s3", "bucket"),
     expiration_seconds=OAuthStateUtils.default_expiration_seconds,
 )
 
-_installation_store = SQLAlchemyInstallationStore(
-    engine=get_engine(),
+_installation_store = AmazonS3InstallationStore(
+    s3_client=boto3.client("s3"),
+    bucket_name=get_config().get("s3", "bucket"),
     client_id=get_config().get("slack", "client_id"),
 )
 
@@ -70,16 +73,6 @@ oauth_settings = OAuthSettings(
     state_store=_state_store,
     callback_options=CallbackOptions(success=_success, failure=_failure),
 )
-
-try:
-    get_engine().execute("select count(*) from slack_oauth_states")
-except Exception:
-    _state_store.metadata.create_all(get_engine())
-
-try:
-    get_engine().execute("select count(*) from slack_installations")
-except Exception:
-    _installation_store.metadata.create_all(get_engine())
 
 app = App(
     signing_secret=get_config().get("slack", "signing_secret"),
