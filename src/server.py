@@ -1,6 +1,8 @@
-from flask import Flask, request
+import time
 
 from .slack import slack_app
+
+from flask import Flask, request
 from slack_bolt.adapter.flask import SlackRequestHandler
 
 app = Flask(__name__)
@@ -15,3 +17,8 @@ def slack_events():
 @app.route("/install", methods=["GET"])
 def slack_install():
     return handler.handle(request)
+
+
+@app.route("/health", methods=["GET"])
+def health():
+    return time.time()
