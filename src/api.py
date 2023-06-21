@@ -93,7 +93,8 @@ class WXWatcher():
         # Delete the expired alerts from the db
         for alert_id in expired_alert_ids:
             print('Removing expired alert: {}'.format(alert_id))
-            ActiveAlerts.delete(alert_id)
+            for alert in ActiveAlerts.query(alert_id):
+                alert.delete()
 
         alerts = []
         for feature in alertsJSON['features']:
