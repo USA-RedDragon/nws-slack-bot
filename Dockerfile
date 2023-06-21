@@ -17,6 +17,6 @@ RUN chmod a+x /entrypoint.sh
 
 ENV PYTHONUNBUFFERED=1
 
-EXPOSE 3000
+EXPOSE 80
 
 ENTRYPOINT ["/entrypoint.sh"]

@@ -1,7 +1,6 @@
 {
     "server": {
         "base_url": "https://example.com",
-        "port": 3000
     },
     "slack": {
         "client_id": "1234567890123.1234567890123",
