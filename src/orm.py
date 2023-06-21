@@ -1,28 +1,75 @@
-from sqlalchemy.orm import DeclarativeBase
-from sqlalchemy.orm import Mapped, mapped_column
+from config import get_config
+
+from pynamodb.attributes import UnicodeAttribute, UTCDateTimeAttribute, Attribute, NUMBER
+from pynamodb.indexes import GlobalSecondaryIndex, AllProjection
+from pynamodb.models import Model
 
 
-class _Base(DeclarativeBase):
-    pass
+class BooleanAsNumberAttribute(Attribute):
+    """
+    A class for boolean stored ast Number attributes
+    """
+
+    attr_type = NUMBER
+
+    def serialize(self, value):
+        if value is None:
+            return None
+        elif value:
+            return '1'
+        else:
+            return '0'
+
+    def deserialize(self, value):
+        return bool(int(value))
 
 
-class Installation(_Base):
-    __tablename__ = 'installations'
+class InstallationStateIndex(GlobalSecondaryIndex):
+    class Meta:
+        index_name = 'state-index'
+        projection = AllProjection()
+        region = get_config().get('dynamodb', 'region')
 
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    team_id: Mapped[str] = mapped_column()
-    bot_token: Mapped[str] = mapped_column()
-    bot_token_expires_at: Mapped[int] = mapped_column(nullable=True)  # Unix timestamp in UTC
-    bot_started: Mapped[bool] = mapped_column()
-    state: Mapped[str] = mapped_column(nullable=True)
+    state = UnicodeAttribute(null=True, hash_key=True)
 
 
-class ActiveAlerts(_Base):
-    __tablename__ = 'active_alerts'
+class InstallationBotStartedIndex(GlobalSecondaryIndex):
+    class Meta:
+        index_name = 'bot_started-index'
+        projection = AllProjection()
+        region = get_config().get('dynamodb', 'region')
 
-    id: Mapped[str] = mapped_column(primary_key=True)
-    state: Mapped[str] = mapped_column()
+    bot_started = BooleanAsNumberAttribute(null=False, hash_key=True)
 
 
-def init_db(engine):
-    _Base.metadata.create_all(engine)
+class Installation(Model):
+    class Meta:
+        table_name = get_config().get('dynamodb', 'installations_table')
+        region = get_config().get('dynamodb', 'region')
+
+    team_id = UnicodeAttribute(hash_key=True, null=False)
+    bot_token = UnicodeAttribute(null=False)
+    bot_token_expires_at = UTCDateTimeAttribute(null=True)  # Unix timestamp in UTC
+    bot_started_index = InstallationBotStartedIndex()
+    bot_started = BooleanAsNumberAttribute(null=False)
+    state_index = InstallationStateIndex()
+    state = UnicodeAttribute(null=True)
+
+
+class ActiveAlertsStateIndex(GlobalSecondaryIndex):
+    class Meta:
+        index_name = 'state-index'
+        projection = AllProjection()
+        region = get_config().get('dynamodb', 'region')
+
+    state = UnicodeAttribute(null=False, hash_key=True)
+
+
+class ActiveAlerts(Model):
+    class Meta:
+        table_name = get_config().get('dynamodb', 'active_alerts_table')
+        region = get_config().get('dynamodb', 'region')
+
+    id = UnicodeAttribute(hash_key=True, null=False)
+    state_index = ActiveAlertsStateIndex()
+    state = UnicodeAttribute(null=False)

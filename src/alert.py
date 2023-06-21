@@ -3,14 +3,12 @@ import sys
 import traceback
 
 from config import get_config
-from db import get_engine
 from orm import Installation
 
 import requests
 from shapely.geometry import shape, Polygon, MultiPolygon, GeometryCollection
 from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
-from sqlalchemy.orm import Session
 
 
 class WXAlert():
@@ -456,19 +454,14 @@ class WXAlert():
 def send_alert(alert):
     # This method will check all chats it is in and send the alert to them
     try:
-        with Session(get_engine()) as session:
-            installations = session.query(Installation).filter(
-                Installation.bot_started,
-                Installation.state == alert.state
-            ).all()
-            for installation in installations:
-                client = WebClient(token=installation.bot_token)
-                for channel in client.conversations_list()['channels']:
-                    if channel['is_member'] and not channel['is_archived'] and not channel['is_im']:
-                        client.chat_postMessage(
-                            channel=channel['id'],
-                            blocks=alert.slack_block()
-                        )
+        for installation in Installation.state_index.query(alert.state):
+            client = WebClient(token=installation.bot_token)
+            for channel in client.conversations_list()['channels']:
+                if channel['is_member'] and not channel['is_archived'] and not channel['is_im']:
+                    client.chat_postMessage(
+                        channel=channel['id'],
+                        blocks=alert.slack_block()
+                    )
     except SlackApiError as e:
         print(f"Error posting message: {e}")
         traceback.print_exception(*sys.exc_info())

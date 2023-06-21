@@ -4,10 +4,8 @@ import traceback
 import time
 
 from config import get_config
-from db import get_engine
 from orm import ActiveAlerts, Installation
 
-from sqlalchemy.orm import Session
 import requests
 
 _wx_watcher_manager = None
@@ -23,10 +21,9 @@ def get_wx_watcher_manager():
 class WXWatcherManager():
     def __init__(self):
         self._watchers = []
-        with Session(get_engine()) as session:
-            for installation in session.query(Installation).filter(Installation.bot_started):
-                print(f"Adding watcher for {installation.state}")
-                self.add_and_start_watcher(WXWatcher(installation.state))
+        for installation in Installation.bot_started_index.query(True):
+            print(f"Adding watcher for {installation.state}")
+            self.add_and_start_watcher(WXWatcher(installation.state))
 
     def add_and_start_watcher(self, watcher):
         for w in self._watchers:
@@ -58,22 +55,20 @@ class WXWatcher():
         return response.json()
 
     def _seen_alert(self, alert):
-        with Session(get_engine()) as session:
-            # Query for state and ID in ActiveAlerts
-            res = session.query(ActiveAlerts).filter(
-                ActiveAlerts.state == self.state,
-                ActiveAlerts.id == alert.id
-            ).first()
-            if res is None:
-                # Add to ActiveAlerts
-                session.add(ActiveAlerts(
-                    id=alert.id,
-                    state=self.state
-                ))
-                session.commit()
-                return False
-            else:
-                return True
+        # Query for state and ID in ActiveAlerts
+        res = None
+        for res_ in ActiveAlerts.query(alert.id):
+            res = res_
+            break
+        if res is None:
+            # Add to ActiveAlerts
+            ActiveAlerts(
+                id=alert.id,
+                state=self.state
+            ).save()
+            return False
+        else:
+            return True
 
     def _get_alerts(self):
         alertsJSON = self._get_alerts_geojson()
@@ -87,25 +82,18 @@ class WXWatcher():
 
         # Check the db for all alerts with the same state. If alerts in the db aren't in the
         # API response, they have expired and should be removed from the db.
-        with Session(get_engine()) as session:
-            # Get all the alerts for the state
-            state_alerts = session.query(ActiveAlerts).filter(
-                ActiveAlerts.state == self.state
-            ).all()
-            # Get the IDs of the alerts in the API response
-            api_alert_ids = [feature['properties']['id'] for feature in alertsJSON['features']]
-            # Get the IDs of the alerts in the db
-            db_alert_ids = [alert.id for alert in state_alerts]
-            # Get the IDs of the alerts that are in the db but not in the API response
-            expired_alert_ids = [alert_id for alert_id in db_alert_ids if alert_id not in api_alert_ids]
-            # Delete the expired alerts from the db
-            for alert_id in expired_alert_ids:
-                print('Removing expired alert: {}'.format(alert_id))
-                session.query(ActiveAlerts).filter(
-                    ActiveAlerts.state == self.state,
-                    ActiveAlerts.id == alert_id
-                ).delete()
-            session.commit()
+        # Get all the alerts for the state
+        state_alerts = ActiveAlerts.state_index.query(self.state)
+        # Get the IDs of the alerts in the API response
+        api_alert_ids = [feature['properties']['id'] for feature in alertsJSON['features']]
+        # Get the IDs of the alerts in the db
+        db_alert_ids = [alert.id for alert in state_alerts]
+        # Get the IDs of the alerts that are in the db but not in the API response
+        expired_alert_ids = [alert_id for alert_id in db_alert_ids if alert_id not in api_alert_ids]
+        # Delete the expired alerts from the db
+        for alert_id in expired_alert_ids:
+            print('Removing expired alert: {}'.format(alert_id))
+            ActiveAlerts.delete(alert_id)
 
         alerts = []
         for feature in alertsJSON['features']:

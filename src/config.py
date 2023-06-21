@@ -15,6 +15,11 @@ _default_config = {
     },
     's3': {
         'bucket': '',
+    },
+    'dynamodb': {
+        'installations_table': '',
+        'active_alerts_table': '',
+        'region': '',
     }
 }
 

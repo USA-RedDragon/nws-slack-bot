@@ -13,6 +13,4 @@ ENV CONFIG_JSON ""
 COPY /entrypoint.sh /entrypoint.sh
 RUN chmod a+x /entrypoint.sh
 
-VOLUME [ "/app/data" ]
-
 ENTRYPOINT [ "/entrypoint.sh", "--", "python", "/app/src/main.py" ]

@@ -2,11 +2,9 @@ import sys
 import traceback
 
 from config import get_config
-from db import get_engine
 from orm import Installation
 
 import boto3
-from sqlalchemy.orm import Session
 from slack_bolt import App
 from slack_sdk.oauth import OAuthStateUtils
 from slack_bolt.oauth.oauth_settings import OAuthSettings
@@ -21,16 +19,12 @@ def _success(args: SuccessArgs) -> BoltResponse:
     installation = args.installation
     client = args.request.context.client
     try:
-        with Session(get_engine()) as session:
-            session.add(
-                Installation(
-                    team_id=installation.team_id,
-                    bot_token=installation.bot_token,
-                    bot_token_expires_at=installation.bot_token_expires_at,
-                    bot_started=False,
-                )
-            )
-            session.commit()
+        Installation(
+            team_id=installation.team_id,
+            bot_token=installation.bot_token,
+            bot_token_expires_at=installation.bot_token_expires_at,
+            bot_started=False,
+        ).save()
         client.chat_postMessage(
             token=installation.bot_token,  # Use the token you just got from oauth.v2.access API response
             channel=installation.user_id,  # Only with chat.postMessage API, you can use user_id here
@@ -169,17 +163,18 @@ def start_command(ack, say, command):
     if not valid:
         say(reason)
         return
-    with Session(get_engine()) as session:
-        # Find the installation and update the bot_started flag and state
-        installation = session.query(Installation).filter(
-            Installation.team_id == command['team_id']
-        ).first()
-        if installation is None:
-            say("Please install the app first.")
-            return
-        installation.bot_started = True
-        installation.state = state
-        session.commit()
+    # Find the installation and update the bot_started flag and state
+    res = Installation.query(command['team_id'])
+    if not res:
+        say("Installation not found.")
+        return
+    for res_ in res:
+        installation = res_
+        break
+    installation.update(actions=[
+        Installation.bot_started.set(True),
+        Installation.state.set(state)
+    ])
     say(f"Starting to watch for alerts in {state}...")
     from api import WXWatcher, get_wx_watcher_manager
     get_wx_watcher_manager().add_and_start_watcher(WXWatcher(state=state))

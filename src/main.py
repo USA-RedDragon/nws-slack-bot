@@ -2,14 +2,11 @@ import sys
 import traceback
 
 import config
-from db import get_engine
 from slack import app
 from api import get_wx_watcher_manager
 
 
 def main():
-    # Trigger database initialization
-    get_engine()
     # Trigger wx watcher initialization
     get_wx_watcher_manager()
     app.start(port=config.get_config().get('server', 'port'))
