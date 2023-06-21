@@ -460,7 +460,8 @@ def send_alert(alert):
                 if channel['is_member'] and not channel['is_archived'] and not channel['is_im']:
                     client.chat_postMessage(
                         channel=channel['id'],
-                        blocks=alert.slack_block()
+                        blocks=alert.slack_block(),
+                        text=str(alert),
                     )
     except SlackApiError as e:
         print(f"Error posting message: {e}")
