@@ -2,6 +2,8 @@ FROM python:3.11-alpine
 
 WORKDIR /app
 
+RUN apk add --no-cache build-base proj-util geos-dev proj-dev
+
 COPY requirements.txt requirements.txt
 
 RUN pip install -r requirements.txt
