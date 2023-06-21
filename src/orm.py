@@ -1,4 +1,4 @@
-from config import get_config
+from .config import get_config
 
 from pynamodb.attributes import UnicodeAttribute, UTCDateTimeAttribute, Attribute, NUMBER
 from pynamodb.indexes import GlobalSecondaryIndex, AllProjection

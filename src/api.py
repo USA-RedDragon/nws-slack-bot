@@ -3,8 +3,8 @@ from threading import Thread
 import traceback
 import time
 
-from config import get_config
-from orm import ActiveAlerts, Installation
+from .config import get_config
+from .orm import ActiveAlerts, Installation
 
 import requests
 
@@ -98,7 +98,7 @@ class WXWatcher():
 
         alerts = []
         for feature in alertsJSON['features']:
-            from alert import WXAlert
+            from .alert import WXAlert
             alert = WXAlert(feature, self.state)
 
             if not self._seen_alert(alert):
@@ -113,7 +113,7 @@ class WXWatcher():
             while True:
                 alerts = self._get_alerts()
                 for alert in alerts:
-                    from alert import send_alert
+                    from .alert import send_alert
                     send_alert(alert)
                     print(alert)
                 time.sleep(30)

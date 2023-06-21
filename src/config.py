@@ -3,7 +3,6 @@ import json
 _default_config = {
     'server': {
         'base_url': '',
-        'port': 3000,
     },
     'slack': {
         'client_id': '',

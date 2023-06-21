@@ -4,3 +4,6 @@ pynamodb==5.5.0
 shapely==2.0.1
 matplotlib==3.7.1
 boto3==1.26.157
+gunicorn==20.1.0
+Flask==2.3.2
+aiohttp==3.8.4

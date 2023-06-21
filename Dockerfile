@@ -15,4 +15,8 @@ ENV CONFIG_JSON ""
 COPY /entrypoint.sh /entrypoint.sh
 RUN chmod a+x /entrypoint.sh
 
-ENTRYPOINT [ "/entrypoint.sh", "--", "python", "/app/src/main.py" ]
+ENV PYTHONUNBUFFERED=1
+
+EXPOSE 3000
+
+ENTRYPOINT ["/entrypoint.sh"]

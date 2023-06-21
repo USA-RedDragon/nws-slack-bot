@@ -1,8 +1,8 @@
 import sys
 import traceback
 
-from config import get_config
-from orm import Installation
+from .config import get_config
+from .orm import Installation
 
 import boto3
 from slack_bolt import App
@@ -68,10 +68,16 @@ oauth_settings = OAuthSettings(
     callback_options=CallbackOptions(success=_success, failure=_failure),
 )
 
-app = App(
+slack_app = App(
     signing_secret=get_config().get("slack", "signing_secret"),
     oauth_settings=oauth_settings
 )
+
+
+@slack_app.middleware  # or app.use(log_request)
+def log_request(logger, body, next):
+    logger.debug(body)
+    return next()
 
 
 def is_state_valid(state):
@@ -152,7 +158,7 @@ def is_state_valid(state):
     return ret, reason
 
 
-@app.command("/alert")
+@slack_app.command("/alert")
 def start_command(ack, say, command):
     ack()
     if 'text' not in command:
@@ -176,5 +182,5 @@ def start_command(ack, say, command):
         Installation.state.set(state)
     ])
     say(f"Starting to watch for alerts in {state}...")
-    from api import WXWatcher, get_wx_watcher_manager
+    from .api import WXWatcher, get_wx_watcher_manager
     get_wx_watcher_manager().add_and_start_watcher(WXWatcher(state=state))

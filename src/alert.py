@@ -2,8 +2,8 @@ import json
 import sys
 import traceback
 
-from config import get_config
-from orm import Installation
+from .config import get_config
+from .orm import Installation
 
 import requests
 from shapely.geometry import shape, Polygon, MultiPolygon, GeometryCollection
