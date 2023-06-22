@@ -310,7 +310,12 @@ def plot_alert_on_state(alert):
     if alert.should_show_radar():
         plot_radar(fig, ax, get_closest_station(alert.polygon), envelope=envelope)
     alert.plot(ax)
-    plt.show()
+    buf = io.BytesIO()
+    plt.savefig(buf, format='png')
+    buf.seek(0)
+    image = buf.getvalue()
+    buf.close()
+    return image
 
 
 def plot_radar_from_station(state, station):

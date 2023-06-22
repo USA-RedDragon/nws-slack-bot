@@ -3,6 +3,7 @@ import sys
 import traceback
 
 from .config import get_config
+from .map import plot_alert_on_state
 from .orm import Installation
 
 import requests
@@ -291,6 +292,7 @@ class WXAlert():
         if 'maxWindSpeed' in feature_json['properties']['parameters']:
             self.max_wind_speed = feature_json['properties']['parameters']['maxWindSpeed']
         self.state = state
+        self.image_blob = plot_alert_on_state(self)
 
     def _make_multipolygon(self, affected_zones):
         ugcs_polygons = []
@@ -462,6 +464,12 @@ def send_alert(alert):
                         channel=channel['id'],
                         blocks=alert.slack_block(),
                         text=str(alert),
+                    )
+                    client.files_upload(
+                        channels=channel['id'],
+                        content=alert.image_blob,
+                        filetype="png",
+                        initial_comment=f"{alert.event}"
                     )
     except SlackApiError as e:
         print(f"Error posting message: {e}")
