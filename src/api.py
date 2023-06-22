@@ -54,21 +54,57 @@ class WXWatcher():
         )
         return response.json()
 
-    def _seen_alert(self, alert):
+    def _seen_alert(self, alert_id):
         # Query for state and ID in ActiveAlerts
         res = None
-        for res_ in ActiveAlerts.query(alert.id):
+        for res_ in ActiveAlerts.query(alert_id):
             res = res_
             break
         if res is None:
             # Add to ActiveAlerts
             ActiveAlerts(
-                id=alert.id,
+                id=alert_id,
                 state=self.state
             ).save()
             return False
         else:
             return True
+
+    def _process_alerts(self):
+        alertsJSON = self._get_alerts_geojson()
+        if 'type' not in alertsJSON or alertsJSON['type'] != 'FeatureCollection':
+            print('Invalid GeoJSON FeatureCollection')
+            return []
+
+        if 'features' not in alertsJSON:
+            print('No alerts found')
+            return []
+
+        # Check the db for all alerts with the same state. If alerts in the db aren't in the
+        # API response, they have expired and should be removed from the db.
+        # Get all the alerts for the state
+        state_alerts = ActiveAlerts.state_index.query(self.state)
+        # Get the IDs of the alerts in the API response
+        api_alert_ids = [feature['properties']['id'] for feature in alertsJSON['features']]
+        # Get the IDs of the alerts in the db
+        db_alert_ids = [alert.id for alert in state_alerts]
+        # Get the IDs of the alerts that are in the db but not in the API response
+        expired_alert_ids = [alert_id for alert_id in db_alert_ids if alert_id not in api_alert_ids]
+        # Delete the expired alerts from the db
+        for alert_id in expired_alert_ids:
+            print('Removing expired alert: {}'.format(alert_id))
+            for alert in ActiveAlerts.query(alert_id):
+                alert.delete()
+
+        for feature in alertsJSON['features']:
+            from .alert import WXAlert
+            if not self._seen_alert(feature['properties']['id']):
+                alert = WXAlert(feature, self.state)
+                print('New alert: {}'.format(alert.id))
+                from .alert import send_alert
+                send_alert(alert)
+            else:
+                print('Already seen alert: {}'.format(feature['properties']['id']))
 
     def _get_alerts(self):
         alertsJSON = self._get_alerts_geojson()
@@ -99,24 +135,20 @@ class WXWatcher():
         alerts = []
         for feature in alertsJSON['features']:
             from .alert import WXAlert
-            alert = WXAlert(feature, self.state)
-
-            if not self._seen_alert(alert):
+            if not self._seen_alert(feature['properties']['id']):
+                alert = WXAlert(feature, self.state)
                 print('New alert: {}'.format(alert.id))
                 alerts.append(alert)
             else:
-                print('Already seen alert: {}'.format(alert.id))
+                print('Already seen alert: {}'.format(feature['properties']['id']))
         return alerts
 
     def _watch_loop(self):
         try:
             while True:
-                alerts = self._get_alerts()
-                for alert in alerts:
-                    from .alert import send_alert
-                    send_alert(alert)
-                    print(alert)
-                time.sleep(30)
+                time_start = time.time()
+                self._process_alerts()
+                time.sleep(max(0, 30 - (time.time() - time_start)))
         except Exception as e:
             print(e)
             traceback.print_exception(*sys.exc_info())
