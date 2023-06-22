@@ -21,12 +21,19 @@ def _success(args: SuccessArgs) -> BoltResponse:
     installation = args.installation
     client = args.request.context.client
     try:
-        Installation(
-            team_id=installation.team_id,
-            bot_token=installation.bot_token,
-            bot_token_expires_at=installation.bot_token_expires_at,
-            bot_started=False,
-        ).save()
+        existing_installation = Installation.get(installation.team_id)
+        if existing_installation:
+            existing_installation.update(actions=[
+                Installation.bot_token.set(installation.bot_token),
+                Installation.bot_token_expires_at.set(installation.bot_token_expires_at),
+            ])
+        else:
+            Installation(
+                team_id=installation.team_id,
+                bot_token=installation.bot_token,
+                bot_token_expires_at=installation.bot_token_expires_at,
+                bot_started=False,
+            ).save()
         client.chat_postMessage(
             token=installation.bot_token,  # Use the token you just got from oauth.v2.access API response
             channel=installation.user_id,  # Only with chat.postMessage API, you can use user_id here
