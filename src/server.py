@@ -22,3 +22,8 @@ def slack_install():
 @app.route("/health", methods=["GET"])
 def health():
     return str(time.time())
+
+
+@app.route("/oauth_redirect", methods=["GET"])
+def oauth_redirect():
+    return handler.handle(request)
