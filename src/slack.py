@@ -199,9 +199,18 @@ def start_command(ack, say, command):
 def radar_command(ack, say, command):
     ack()
     if 'text' not in command:
-        say("Please specify a radar to view, such as `ktlx`.")
+        say("Please specify a radar to view, such as `ktlx`, and optionally a two-digit state.")
         return
-    radar = command['text'].lower()
+    params = command['text'].split(" ")
+    radar = params[0].lower()
+    state = None
+    if len(params) > 1:
+        state = params[1].upper()
+        valid, reason = is_state_valid(state)
+        if not valid:
+            say(reason)
+            return
+    installation = None
     res = Installation.query(command['team_id'])
     if not res:
         say("Installation not found.")
@@ -209,14 +218,16 @@ def radar_command(ack, say, command):
     for res_ in res:
         installation = res_
         break
+    if not state:
+        state = installation.state
     client = WebClient(token=installation.bot_token)
     try:
-        print(f"Posting radar for {radar} in {installation.state}")
+        print(f"Posting radar for {radar} in {state}")
         client.files_upload(
             channels=command['channel_id'],
-            content=plot_radar_from_station(installation.state, radar),
+            content=plot_radar_from_station(state, radar),
             filetype="png",
-            initial_comment=f"Here's the radar for {radar.upper()} in {installation.state}"
+            initial_comment=f"Here's the radar for {radar.upper()} in {state.upper()}"
         )
     except Exception as e:
         print(f"Error posting message: {e}")
