@@ -1,10 +1,13 @@
 import sys
 import traceback
+import uuid
 
 from .config import get_config
 from .orm import Installation
+from .map import plot_radar_from_station
 
 import boto3
+import matplotlib.pyplot as plt
 from slack_bolt import App
 from slack_sdk.oauth import OAuthStateUtils
 from slack_bolt.oauth.oauth_settings import OAuthSettings
@@ -184,3 +187,23 @@ def start_command(ack, say, command):
     say(f"Starting to watch for alerts in {state}...")
     from .api import WXWatcher, get_wx_watcher_manager
     get_wx_watcher_manager().add_and_start_watcher(WXWatcher(state=state))
+
+
+@slack_app.command("/radar")
+def radar_command(ack, say, command):
+    ack()
+    if 'text' not in command:
+        say("Please specify a radar to view, such as `ktlx`.")
+        return
+    radar = command['text'].lower()
+    res = Installation.query(command['team_id'])
+    if not res:
+        say("Installation not found.")
+        return
+    for res_ in res:
+        installation = res_
+        break
+    plot_radar_from_station(installation.state, radar)
+    random_id = str(uuid.uuid4())
+    plt.savefig(f"/tmp/radar-{random_id}.png")
+    say(f"Here's the radar for {radar.upper()} in {installation.state}:", files=[f"/tmp/radar-{random_id}.png"])
