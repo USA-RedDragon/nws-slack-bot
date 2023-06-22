@@ -1,3 +1,5 @@
+import io
+
 from .config import get_config
 
 from awips.dataaccess import DataAccessLayer
@@ -322,6 +324,12 @@ def plot_radar_from_station(state, station):
     plot_lakes(ax, envelope=envelope)
     plot_rivers(ax, envelope=envelope)
     plot_radar(fig, ax, station, envelope=envelope)
+    buf = io.BytesIO()
+    plt.savefig(buf, format='png')
+    buf.seek(0)
+    image = buf.getvalue()
+    buf.close()
+    return image
 
 
 def plot_all_state_alerts(state):

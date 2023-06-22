@@ -1,4 +1,3 @@
-import io
 import sys
 import traceback
 
@@ -7,7 +6,6 @@ from .orm import Installation
 from .map import plot_radar_from_station
 
 import boto3
-import matplotlib.pyplot as plt
 from slack_bolt import App
 from slack_sdk.oauth import OAuthStateUtils
 from slack_bolt.oauth.oauth_settings import OAuthSettings
@@ -205,22 +203,14 @@ def radar_command(ack, say, command):
         installation = res_
         break
     client = WebClient(token=installation.bot_token)
-    plot_radar_from_station(installation.state, radar)
     try:
-        buf = io.BytesIO()
-        plt.savefig(buf, format='png')
-        buf.seek(0)
-        image_png = buf.getvalue()
-        buf.close()
+        print(f"Posting radar for {radar} in {installation.state}")
         client.files_upload(
             channels=command['channel_id'],
-            content=image_png,
+            content=plot_radar_from_station(installation.state, radar),
             filetype="png",
             initial_comment=f"Here's the radar for {radar.upper()} in {installation.state}"
         )
     except Exception as e:
         print(f"Error posting message: {e}")
         traceback.print_exception(*sys.exc_info())
-    finally:
-        # Remove the file
-        plt.close()
