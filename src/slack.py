@@ -14,6 +14,7 @@ from slack_bolt.oauth.oauth_settings import OAuthSettings
 from slack_sdk.oauth.installation_store.amazon_s3 import AmazonS3InstallationStore
 from slack_sdk.oauth.state_store.amazon_s3 import AmazonS3OAuthStateStore
 from slack_bolt.oauth.callback_options import CallbackOptions, SuccessArgs, FailureArgs
+from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
 from slack_bolt import BoltResponse
 
@@ -203,7 +204,13 @@ def radar_command(ack, say, command):
     for res_ in res:
         installation = res_
         break
+    client = WebClient(token=installation.bot_token)
     plot_radar_from_station(installation.state, radar)
     random_id = str(uuid.uuid4())
     plt.savefig(f"/tmp/radar-{random_id}.png")
-    say(f"Here's the radar for {radar.upper()} in {installation.state}:", files=[f"/tmp/radar-{random_id}.png"])
+    client.chat_postMessage(
+        channel=command['channel_id'],
+        text=f"Here's the radar for {radar.upper()} in {installation.state}:",
+        attachments=[f"/tmp/radar-{random_id}.png"]
+    )
+    say(f"Here's the radar for {radar.upper()} in {installation.state}:", attachments=[f"/tmp/radar-{random_id}.png"])
