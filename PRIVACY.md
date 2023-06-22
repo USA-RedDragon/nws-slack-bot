@@ -14,8 +14,12 @@ Allows the bot to send alerts to channels it's a member of.
 
 ### `channels:read` `groups:read`
 
-Allows the bot to list groups (private channnels) and public channels. It uses this to see which channels it is a member of and sends the alerts to those channels.
+Allows the bot to list groups (private channels) and public channels. It uses this to see which channels it is a member of and sends the alerts to those channels.
 
 ### `commands`
 
-Gives the bot the ability to recieve and respond to slash commands, such as `/alert`
+Gives the bot the ability to receive and respond to slash commands, such as `/alert`
+
+### `files:write`
+
+Gives the bot the ability to send imagery based on the alert and radar.

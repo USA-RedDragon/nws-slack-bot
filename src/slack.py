@@ -1,6 +1,6 @@
+import io
 import sys
 import traceback
-import uuid
 
 from .config import get_config
 from .orm import Installation
@@ -62,7 +62,7 @@ _installation_store = AmazonS3InstallationStore(
 oauth_settings = OAuthSettings(
     client_id=get_config().get("slack", "client_id"),
     client_secret=get_config().get("slack", "client_secret"),
-    scopes=["chat:write", "channels:read", "groups:read", "commands"],
+    scopes=["chat:write", "channels:read", "groups:read", "commands", "files:write"],
     user_scopes=[],
     install_path="/install",
     redirect_uri_path="/oauth_redirect",
@@ -206,11 +206,21 @@ def radar_command(ack, say, command):
         break
     client = WebClient(token=installation.bot_token)
     plot_radar_from_station(installation.state, radar)
-    random_id = str(uuid.uuid4())
-    plt.savefig(f"/tmp/radar-{random_id}.png")
-    client.chat_postMessage(
-        channel=command['channel_id'],
-        text=f"Here's the radar for {radar.upper()} in {installation.state}:",
-        attachments=[f"/tmp/radar-{random_id}.png"]
-    )
-    say(f"Here's the radar for {radar.upper()} in {installation.state}:", attachments=[f"/tmp/radar-{random_id}.png"])
+    try:
+        buf = io.BytesIO()
+        plt.savefig(buf, format='png')
+        buf.seek(0)
+        image_png = buf.getvalue()
+        buf.close()
+        client.files_upload(
+            channels=command['channel_id'],
+            content=image_png,
+            filetype="png",
+            initial_comment=f"Here's the radar for {radar.upper()} in {installation.state}"
+        )
+    except Exception as e:
+        print(f"Error posting message: {e}")
+        traceback.print_exception(*sys.exc_info())
+    finally:
+        # Remove the file
+        plt.close()
