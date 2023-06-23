@@ -468,7 +468,6 @@ def send_alert(alert):
                     client.files_upload_v2(
                         channels=channel['id'],
                         content=state_image,
-                        filetype="png",
                         title=f"{alert.headline}",
                         filename=f"{alert.event}-{alert.sent}.png",
                     )

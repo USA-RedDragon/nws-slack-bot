@@ -233,7 +233,6 @@ def radar_command(ack, say, command):
         client.files_upload_v2(
             channels=command['channel_id'],
             content=plot_radar_lvl2_from_station(state, radar),
-            filetype="png",
             title=f"{radar.upper()} in {state.upper()}",
             filename=f"{radar.upper()}-{str(time.time())}.png",
             initial_comment=f"Here's the radar for {radar.upper()} in {state.upper()}"
