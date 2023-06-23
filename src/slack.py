@@ -231,7 +231,7 @@ def radar_command(ack, say, command):
         # Send the user a friendly acknowledgement message and mention that the radar image could take a few seconds to download and generate
         say(f"Fetching latest radar scan for {radar.upper()} in {state.upper()}. Please be patient, this could take a few seconds.")
         client.files_upload_v2(
-            channels=command['channel_id'],
+            channel=command['channel_id'],
             content=plot_radar_lvl2_from_station(state, radar),
             title=f"{radar.upper()} in {state.upper()}",
             filename=f"{radar.upper()}-{str(time.time())}.png",
