@@ -68,7 +68,7 @@ _installation_store = AmazonS3InstallationStore(
 oauth_settings = OAuthSettings(
     client_id=get_config().get("slack", "client_id"),
     client_secret=get_config().get("slack", "client_secret"),
-    scopes=["chat:write", "channels:read", "groups:read", "commands", "files:write"],
+    scopes=["chat:write", "channels:read", "groups:read", "commands", "files:write", "files:read"],
     user_scopes=[],
     install_path="/install",
     redirect_uri_path="/oauth_redirect",
@@ -231,7 +231,7 @@ def radar_command(ack, say, command):
         client = WebClient(token=installation.bot_token)
         # Send the user a friendly acknowledgement message and mention that the radar image could take a few seconds to download and generate
         say(f"Fetching latest radar scan for {radar.upper()} in {state.upper()}. Please be patient, this could take a few seconds.")
-        client.files_upload(
+        client.files_upload_v2(
             channels=command['channel_id'],
             content=plot_radar_lvl2_from_station(state, radar),
             filetype="png",

@@ -20,6 +20,6 @@ Allows the bot to list groups (private channels) and public channels. It uses th
 
 Gives the bot the ability to receive and respond to slash commands, such as `/alert`
 
-### `files:write`
+### `files:write` and `files:read`
 
 Gives the bot the ability to send imagery based on the alert and radar.

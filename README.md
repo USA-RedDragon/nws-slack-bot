@@ -2,7 +2,7 @@
 
 Sends NWS alerts for your state to Slack.
 
-<a href="https://slack.com/oauth/v2/authorize?state=0e33c863-bc1a-42f9-91d8-ee1deb2a8264&client_id=5446375181636.5437287123510&scope=chat:write,channels:read,groups:read,commands,files:write&user_scope=&redirect_uri=https://nws-slack-bot.mcswain.dev/oauth_redirect"><img alt="Add to Slack" height="40" width="139" src="https://platform.slack-edge.com/img/add_to_slack@2x.png" /></a>
+<a href="https://slack.com/oauth/v2/authorize?state=0e33c863-bc1a-42f9-91d8-ee1deb2a8264&client_id=5446375181636.5437287123510&scope=chat:write,channels:read,groups:read,commands,files:write,files:read&user_scope=&redirect_uri=https://nws-slack-bot.mcswain.dev/oauth_redirect"><img alt="Add to Slack" height="40" width="139" src="https://platform.slack-edge.com/img/add_to_slack@2x.png" /></a>
 
 ## Usage
 

@@ -465,7 +465,7 @@ def send_alert(alert):
                         blocks=alert.slack_block(),
                         text=str(alert),
                     )
-                    client.files_upload(
+                    client.files_upload_v2(
                         channels=channel['id'],
                         content=state_image,
                         filetype="png",
