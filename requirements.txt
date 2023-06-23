@@ -11,3 +11,4 @@ python-awips==18.1.11
 numpy==1.25.0
 Cartopy==0.21.1
 adjustText==0.8
+MetPy==1.5.0

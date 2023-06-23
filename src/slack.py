@@ -5,7 +5,7 @@ import traceback
 
 from .config import get_config
 from .orm import Installation
-from .map import plot_radar_from_station
+from .map import plot_radar_lvl2_from_station
 
 import boto3
 from slack_bolt import App
@@ -228,7 +228,7 @@ def radar_command(ack, say, command):
         say(f"Fetching latest radar scan for {radar.upper()} in {state.upper()}. Please be patient, this could take a few seconds.")
         thread = Thread(target=(lambda: client.files_upload(
             channels=command['channel_id'],
-            content=plot_radar_from_station(state, radar),
+            content=plot_radar_lvl2_from_station(state, radar),
             filetype="png",
             title=f"{radar.upper()} in {state.upper()}",
             filename=f"{radar.upper()}-{str(time.time())}.png",

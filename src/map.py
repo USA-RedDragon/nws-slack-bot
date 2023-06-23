@@ -1,13 +1,21 @@
+import datetime
 import io
 import pickle
+import re
 
 from .config import get_config
 
 from adjustText import adjust_text
 from awips.dataaccess import DataAccessLayer
+import boto3
+import botocore
+from botocore.client import Config
 import cartopy.crs as ccrs
 import matplotlib.pyplot as plt
 import matplotlib
+import metpy
+from metpy.units import units
+from metpy.io import Level2File
 from shapely.ops import unary_union
 import numpy as np
 import requests
@@ -113,7 +121,7 @@ def plot_radar(fig, ax, station, envelope=None, add_legend=True):
         cs = ax.pcolormesh(lons, lats, data, cmap=_nws_reflectivity_colors, zorder=4, alpha=0.8, norm=matplotlib.colors.Normalize(-30, 85))
         if add_legend:
             cbar = fig.colorbar(cs, extend='both', shrink=0.5, orientation='horizontal')
-            cbar.set_label(grid.getParameter() + " " + "Valid: " + str(grid.getDataTime().getRefTime()))
+            cbar.set_label("Reflectivity (dBZ) " + "Valid: " + str(grid.getDataTime().getRefTime()))
 
 
 def get_boundaries_from_polygon(poly):
@@ -190,6 +198,80 @@ def plot_alert_on_state(alert):
     buf.close()
     plt.close()
     return image
+
+
+def get_latest_radar_scan(station):
+    station = station.upper()
+    s3 = boto3.resource('s3', config=Config(signature_version=botocore.UNSIGNED, user_agent_extra='Resource'))
+    bucket = s3.Bucket('noaa-nexrad-level2')
+    # Search for the latest file matching the format "yyyy/mm/dd/{station}/{station}{time}_V06"
+    utcdate = datetime.datetime.utcnow()
+    prefix = f"{utcdate.strftime('%Y/%m/%d')}/{station}/{station}{utcdate.strftime('%Y%m%d')}_"
+    print("Searching for prefix: ", prefix)
+    # Strip out any objects whose key ends in _MDM
+    objs = [obj for obj in list(bucket.objects.filter(Prefix=prefix)) if not obj.key.endswith('_MDM')]
+    if len(objs) == 0:
+        print("No files found")
+        return
+    objs.sort(key=lambda x: x.key)
+    print("Found: ", objs[-1].key)
+    return objs[-1]
+
+
+def plot_radar_lvl2_from_station(state, station):
+    station = station.upper()
+    obj = get_latest_radar_scan(station)
+    # Strip out the "yyyy/mm/dd/{station}/{station}" prefix and _V06 suffix to get the timestamp
+    regex = re.compile(r'\d{4}/\d{2}/\d{2}/' + station + '/' + station + r'(\d{8}_\d{6})_V06')
+    match = regex.match(obj.key)
+    if match is None:
+        print("Error parsing timestamp from key")
+        return
+    timestamp = datetime.datetime.strptime(match.group(1), '%Y%m%d_%H%M%S')
+    f = Level2File(obj.get()['Body'])
+    plot_radar_from_file(state, f, timestamp)
+
+
+def plot_radar_from_file(state, f, timestamp, add_legend=True):
+    with open(f".states/{state}.pickle", "rb") as pf:
+        fig = pickle.load(pf)
+    ax = fig.axes[0]
+
+    sweep = 0
+    # First item in ray is header, which has azimuth angle
+    az = np.array([ray[0].az_angle for ray in f.sweeps[sweep]])
+    diff = np.diff(az)
+    crossed = diff < -180
+    diff[crossed] += 360.
+    avg_spacing = diff.mean()
+
+    # Convert mid-point to edge
+    az = (az[:-1] + az[1:]) / 2
+    az[crossed] += 180.
+
+    # Concatenate with overall start and end of data we calculate using the average spacing
+    az = np.concatenate(([az[0] - avg_spacing], az, [az[-1] + avg_spacing]))
+    az = units.Quantity(az, 'degrees')
+
+    ref_hdr = f.sweeps[sweep][0][4][b'REF'][0]
+    ref_range = (np.arange(ref_hdr.num_gates + 1) - 0.5) * ref_hdr.gate_width + ref_hdr.first_gate
+    ref_range = units.Quantity(ref_range, 'kilometers')
+    ref = np.array([ray[4][b'REF'][1] for ray in f.sweeps[sweep]])
+
+    # Extract central longitude and latitude from file
+    cent_lon = f.sweeps[0][0][1].lon
+    cent_lat = f.sweeps[0][0][1].lat
+
+    data = np.ma.array(ref)
+    data[np.isnan(data)] = np.ma.masked
+
+    xlocs, ylocs = metpy.calc.azimuth_range_to_lat_lon(az, ref_range, cent_lon, cent_lat)
+
+    cs = ax.pcolormesh(xlocs, ylocs, data, cmap=_nws_reflectivity_colors,
+                       zorder=4, alpha=0.7, norm=matplotlib.colors.Normalize(-30, 85), transform=ccrs.PlateCarree())
+    if add_legend:
+        cbar = fig.colorbar(cs, extend='both', shrink=0.5, orientation='horizontal')
+        cbar.set_label('Reflectivity (dBZ) Valid: {}'.format(timestamp))
 
 
 def plot_radar_from_station(state, station):
