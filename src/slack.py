@@ -198,8 +198,7 @@ def start_command(ack, say, command):
     except Exception as e:
         print(f"Error posting message: {e}")
         traceback.print_exception(*sys.exc_info())
-        estr = traceback.format_exc()
-        say("Error occurred while processing `/alert " + command['text'] + "`\n" + estr)
+        say("Error occurred while processing `/alert " + command['text'] + "`")
 
 
 @slack_app.command("/radar")
@@ -242,5 +241,4 @@ def radar_command(ack, say, command):
     except Exception as e:
         print(f"Error posting message: {e}")
         traceback.print_exception(*sys.exc_info())
-        estr = traceback.format_exc()
-        say("Error occurred while processing `/radar " + command['text'] + "`\n" + estr)
+        say("Error occurred while processing `/radar " + command['text'] + "`")
