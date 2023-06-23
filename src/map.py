@@ -230,6 +230,13 @@ def plot_radar_lvl2_from_station(state, station):
     timestamp = datetime.datetime.strptime(match.group(1), '%Y%m%d_%H%M%S')
     f = Level2File(obj.get()['Body'])
     plot_radar_from_file(state, f, timestamp)
+    buf = io.BytesIO()
+    plt.savefig(buf, format='png', bbox_inches='tight')
+    buf.seek(0)
+    image = buf.getvalue()
+    buf.close()
+    plt.close()
+    return image
 
 
 def plot_radar_from_file(state, f, timestamp, add_legend=True):
