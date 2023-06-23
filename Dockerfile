@@ -4,7 +4,7 @@ ENV PYTHONUNBUFFERED=1
 
 WORKDIR /app
 
-RUN apk add --no-cache build-base proj-util geos-dev proj-dev curl gfortran
+RUN apk add --no-cache build-base proj-util geos-dev proj-dev curl gfortran openblas-dev
 
 COPY requirements.txt requirements.txt
 
