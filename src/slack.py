@@ -1,4 +1,6 @@
 import sys
+import time
+from threading import Thread
 import traceback
 
 from .config import get_config
@@ -222,13 +224,15 @@ def radar_command(ack, say, command):
         state = installation.state
     client = WebClient(token=installation.bot_token)
     try:
-        print(f"Posting radar for {radar} in {state}")
-        client.files_upload(
+        thread = Thread(target=(lambda: client.files_upload(
             channels=command['channel_id'],
             content=plot_radar_from_station(state, radar),
             filetype="png",
+            title=f"{radar.upper()} in {state.upper()}",
+            filename=f"{radar.upper()}-{str(time.time())}.png",
             initial_comment=f"Here's the radar for {radar.upper()} in {state.upper()}"
-        )
+        )), daemon=True)
+        thread.start()
     except Exception as e:
         print(f"Error posting message: {e}")
         traceback.print_exception(*sys.exc_info())

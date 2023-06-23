@@ -1,5 +1,6 @@
 import json
 import sys
+from threading import Thread
 import traceback
 
 from .config import get_config
@@ -292,7 +293,6 @@ class WXAlert():
         if 'maxWindSpeed' in feature_json['properties']['parameters']:
             self.max_wind_speed = feature_json['properties']['parameters']['maxWindSpeed']
         self.state = state
-        self.image_blob = plot_alert_on_state(self)
 
     def _make_multipolygon(self, affected_zones):
         ugcs_polygons = []
@@ -465,12 +465,14 @@ def send_alert(alert):
                         blocks=alert.slack_block(),
                         text=str(alert),
                     )
-                    client.files_upload(
+                    thread = Thread(target=(lambda: client.files_upload(
                         channels=channel['id'],
-                        content=alert.image_blob,
+                        content=plot_alert_on_state(alert),
                         filetype="png",
-                        initial_comment=f"{alert.event}"
-                    )
+                        title=f"{alert.headline}",
+                        filename=f"{alert.event}-{alert.sent}.png",
+                    )), daemon=True)
+                    thread.start()
     except SlackApiError as e:
         print(f"Error posting message: {e}")
         traceback.print_exception(*sys.exc_info())
