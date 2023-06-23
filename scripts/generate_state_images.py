@@ -6,7 +6,7 @@ import pickle
 
 from awips.dataaccess import DataAccessLayer
 import cartopy.crs as ccrs
-from cartopy.feature import ShapelyFeature
+from cartopy.feature import ShapelyFeature, COASTLINE, OCEAN, LAKES, RIVERS, STATES
 import matplotlib
 import matplotlib.pyplot as plt
 from shapely.ops import unary_union
@@ -103,6 +103,8 @@ def main():
         raise ValueError("Output is not a directory")
 
     if args.all and not args.state:
+        generate_country(args.output)
+        plt.close()
         for state in states:
             generate_state(state, args.output)
             plt.close()
@@ -198,6 +200,40 @@ def generate_state(state, output_dir):
     plot_rivers(ax, envelope=envelope)
 
     with open(os.path.join(output_dir, state + ".pickle"), "wb") as outfile:
+        pickle.dump(fig, outfile)
+
+
+def plot_country(ax):
+    # Plot political/state boundaries handled by Cartopy
+    # political_boundaries = NaturalEarthFeature(category='cultural',
+    #                                            name='admin_0_boundary_lines_land',
+    #                                            scale='50m', facecolor='none')
+    # ax.add_feature(political_boundaries, linestyle='-', edgecolor='black', linewidth=1, zorder=1)
+    ax.add_feature(STATES, linestyle='-', edgecolor='black', linewidth=1, zorder=1)
+    ax.add_feature(COASTLINE, linestyle='-', edgecolor='black', linewidth=1, zorder=1)
+    ax.add_feature(OCEAN, linestyle='-', facecolor='#1e90ff', edgecolor='#1e90ff', zorder=1, alpha=0.4)
+    ax.add_feature(LAKES, linestyle='-', facecolor='#1e90ff', edgecolor='#1e90ff', zorder=1, alpha=0.4)
+    ax.add_feature(RIVERS, linestyle='-', facecolor='#1e90ff', edgecolor='#1e90ff', zorder=1, alpha=0.4)
+
+
+def generate_country(output_dir):
+    fig, ax = plt.subplots(figsize=(12, 12), subplot_kw=dict(projection=ccrs.PlateCarree()))
+    ax.grid(False)
+    bounds = [-125, -66.5, 20, 50]
+    ax.set_extent(bounds)
+
+    class Bounds:
+        bounds = [-125, -66.5, 20, 50]
+
+        def __init__(self, bounds):
+            self.bounds = bounds
+
+    class Anon:
+        envelope = Bounds(bounds)
+
+    plot_interstates(ax, envelope=Anon())
+    plot_country(ax)
+    with open(os.path.join(output_dir, "US.pickle"), "wb") as outfile:
         pickle.dump(fig, outfile)
 
 
