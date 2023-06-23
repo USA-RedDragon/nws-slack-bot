@@ -171,58 +171,64 @@ def is_state_valid(state):
 @slack_app.command("/alert")
 def start_command(ack, say, command):
     ack()
-    if 'text' not in command:
-        say("Please specify a state to watch for alerts in.")
-        return
-    state = command['text'].upper()
-    valid, reason = is_state_valid(state)
-    if not valid:
-        say(reason)
-        return
-    # Find the installation and update the bot_started flag and state
-    res = Installation.query(command['team_id'])
-    if not res:
-        say("Installation not found.")
-        return
-    for res_ in res:
-        installation = res_
-        break
-    installation.update(actions=[
-        Installation.bot_started.set(True),
-        Installation.state.set(state)
-    ])
-    say(f"Starting to watch for alerts in {state}...")
-    from .api import WXWatcher, get_wx_watcher_manager
-    get_wx_watcher_manager().add_and_start_watcher(WXWatcher(state=state))
+    try:
+        if 'text' not in command:
+            say("Please specify a state to watch for alerts in.")
+            return
+        state = command['text'].upper()
+        valid, reason = is_state_valid(state)
+        if not valid:
+            say(reason)
+            return
+        # Find the installation and update the bot_started flag and state
+        res = Installation.query(command['team_id'])
+        if not res:
+            say("Installation not found.")
+            return
+        for res_ in res:
+            installation = res_
+            break
+        installation.update(actions=[
+            Installation.bot_started.set(True),
+            Installation.state.set(state)
+        ])
+        say(f"Starting to watch for alerts in {state}...")
+        from .api import WXWatcher, get_wx_watcher_manager
+        get_wx_watcher_manager().add_and_start_watcher(WXWatcher(state=state))
+    except Exception as e:
+        print(f"Error posting message: {e}")
+        traceback.print_exception(*sys.exc_info())
+        estr = traceback.format_exc()
+        say("Error occurred while processing `/alert " + command['text'] + "`\n" + estr)
 
 
 @slack_app.command("/radar")
 def radar_command(ack, say, command):
     ack()
-    if 'text' not in command:
-        say("Please specify a radar to view, such as `ktlx`, and optionally a two-digit state.")
-        return
-    params = command['text'].split(" ")
-    radar = params[0].lower()
-    state = None
-    if len(params) > 1:
-        state = params[1].upper()
-        valid, reason = is_state_valid(state)
-        if not valid:
-            say(reason)
-            return
-    installation = None
-    res = Installation.query(command['team_id'])
-    if not res:
-        say("Installation not found.")
-        return
-    for res_ in res:
-        installation = res_
-        break
-    if not state:
-        state = installation.state
-    client = WebClient(token=installation.bot_token)
     try:
+        if 'text' not in command:
+            say("Please specify a radar to view, such as `ktlx`, and optionally a two-digit state.")
+            return
+        params = command['text'].split(" ")
+        radar = params[0].lower()
+        state = None
+        if len(params) > 1:
+            state = params[1].upper()
+            valid, reason = is_state_valid(state)
+            if not valid:
+                say(reason)
+                return
+        installation = None
+        res = Installation.query(command['team_id'])
+        if not res:
+            say("Installation not found.")
+            return
+        for res_ in res:
+            installation = res_
+            break
+        if not state:
+            state = installation.state
+        client = WebClient(token=installation.bot_token)
         # Send the user a friendly acknowledgement message and mention that the radar image could take a few seconds to download and generate
         say(f"Fetching latest radar scan for {radar.upper()} in {state.upper()}. Please be patient, this could take a few seconds.")
         client.files_upload(
@@ -236,3 +242,5 @@ def radar_command(ack, say, command):
     except Exception as e:
         print(f"Error posting message: {e}")
         traceback.print_exception(*sys.exc_info())
+        estr = traceback.format_exc()
+        say("Error occurred while processing `/radar " + command['text'] + "`\n" + estr)
