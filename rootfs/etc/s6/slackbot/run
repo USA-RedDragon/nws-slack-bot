@@ -1,0 +1,5 @@
+#!/bin/sh
+
+cd /app
+
+exec gunicorn --worker-tmp-dir /dev/shm -w 2 -b 0.0.0.0:80 src.server:app 2>&1
