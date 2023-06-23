@@ -236,7 +236,7 @@ def radar_command(ack, say, command):
             filetype="png",
             title=f"{radar.upper()} in {state.upper()}",
             filename=f"{radar.upper()}-{str(time.time())}.png",
-            initial_comment=f"@{command['user_name']} Here's the radar for {radar.upper()} in {state.upper()}"
+            initial_comment=f"Here's the radar for {radar.upper()} in {state.upper()}"
         )
     except Exception as e:
         print(f"Error posting message: {e}")
