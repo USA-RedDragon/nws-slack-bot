@@ -455,6 +455,7 @@ class WXAlert():
 def send_alert(alert):
     # This method will check all chats it is in and send the alert to them
     try:
+        state_image = plot_alert_on_state(alert)
         for installation in Installation.state_index.query(alert.state):
             client = WebClient(token=installation.bot_token)
             for channel in client.conversations_list()['channels']:
@@ -466,7 +467,7 @@ def send_alert(alert):
                     )
                     client.files_upload(
                         channels=channel['id'],
-                        content=plot_alert_on_state(alert),
+                        content=state_image,
                         filetype="png",
                         title=f"{alert.headline}",
                         filename=f"{alert.event}-{alert.sent}.png",
