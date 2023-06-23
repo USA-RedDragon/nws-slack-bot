@@ -1,6 +1,5 @@
 import json
 import sys
-from threading import Thread
 import traceback
 
 from .config import get_config
@@ -465,14 +464,13 @@ def send_alert(alert):
                         blocks=alert.slack_block(),
                         text=str(alert),
                     )
-                    thread = Thread(target=(lambda: client.files_upload(
+                    client.files_upload(
                         channels=channel['id'],
                         content=plot_alert_on_state(alert),
                         filetype="png",
                         title=f"{alert.headline}",
                         filename=f"{alert.event}-{alert.sent}.png",
-                    )), daemon=True)
-                    thread.start()
+                    )
     except SlackApiError as e:
         print(f"Error posting message: {e}")
         traceback.print_exception(*sys.exc_info())

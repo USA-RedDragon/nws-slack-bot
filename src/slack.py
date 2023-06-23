@@ -1,6 +1,5 @@
 import sys
 import time
-from threading import Thread
 import traceback
 
 from .config import get_config
@@ -226,15 +225,14 @@ def radar_command(ack, say, command):
     try:
         # Send the user a friendly acknowledgement message and mention that the radar image could take a few seconds to download and generate
         say(f"Fetching latest radar scan for {radar.upper()} in {state.upper()}. Please be patient, this could take a few seconds.")
-        thread = Thread(target=(lambda: client.files_upload(
+        client.files_upload(
             channels=command['channel_id'],
             content=plot_radar_lvl2_from_station(state, radar),
             filetype="png",
             title=f"{radar.upper()} in {state.upper()}",
             filename=f"{radar.upper()}-{str(time.time())}.png",
             initial_comment=f"@{command['user_name']} Here's the radar for {radar.upper()} in {state.upper()}"
-        )), daemon=True)
-        thread.start()
+        )
     except Exception as e:
         print(f"Error posting message: {e}")
         traceback.print_exception(*sys.exc_info())
