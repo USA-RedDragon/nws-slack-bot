@@ -315,6 +315,7 @@ def plot_alert_on_state(alert):
     buf.seek(0)
     image = buf.getvalue()
     buf.close()
+    plt.close()
     return image
 
 
@@ -334,6 +335,7 @@ def plot_radar_from_station(state, station):
     buf.seek(0)
     image = buf.getvalue()
     buf.close()
+    plt.close()
     return image
 
 
