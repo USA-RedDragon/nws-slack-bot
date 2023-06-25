@@ -182,6 +182,7 @@ def start_command(ack, say, command):
             say(reason)
             return
         # Find the installation and update the bot_started flag and state
+        installation = None
         res = Installation.query(command['team_id'])
         if not res:
             say("Installation not found.")
@@ -205,9 +206,20 @@ def start_command(ack, say, command):
 @slack_app.command("/radar")
 def radar_command(ack, say, command):
     ack()
+    installation = None
+    res = Installation.query(command['team_id'])
+    if not res:
+        say("Installation not found.")
+        return
+    for res_ in res:
+        installation = res_
+        break
+    client = WebClient(token=installation.bot_token)
     try:
         if 'text' not in command:
-            say("Please specify a radar to view, such as `ktlx`, and optionally a two-digit state.")
+            client.chat_postEphemeral(
+                "Please specify a radar to view, such as `ktlx`, and optionally a two-digit state. For example, `/radar ktlx ok`.",
+                command['user_id'], command['channel_id'])
             return
         params = command['text'].split(" ")
         radar = params[0].lower()
@@ -216,19 +228,10 @@ def radar_command(ack, say, command):
             state = params[1].upper()
             valid, reason = is_state_valid(state)
             if not valid:
-                say(reason)
+                client.chat_postEphemeral(reason, command['user_id'], command['channel_id'])
                 return
-        installation = None
-        res = Installation.query(command['team_id'])
-        if not res:
-            say("Installation not found.")
-            return
-        for res_ in res:
-            installation = res_
-            break
         if not state:
             state = installation.state
-        client = WebClient(token=installation.bot_token)
         # Send the user a friendly acknowledgement message and mention that the radar image could take a few seconds to download and generate
         say(f"Fetching latest radar scan for {radar.upper()} in {state.upper()}. Please be patient, this could take a few seconds.")
         client.files_upload_v2(
@@ -247,36 +250,59 @@ def radar_command(ack, say, command):
 @slack_app.command("/spc")
 def spc_command(ack, say, command):
     ack()
+    installation = None
+    res = Installation.query(command['team_id'])
+    if not res:
+        say("Installation not found.")
+        return
+    for res_ in res:
+        installation = res_
+        break
+    client = WebClient(token=installation.bot_token)
     try:
         if 'text' not in command:
-            say("Please specify a day and the outlook type, such as `/spc 1 cat`")
+            client.chat_postEphemeral(
+                "Please specify a day and the outlook type, such as `/spc 1 cat`",
+                command['user_id'], command['channel_id'])
             return
         params = command['text'].split(" ")
         if len(params) < 2:
-            say("Please specify a day and outlook type, such as `/spc 1 cat`")
+            client.chat_postEphemeral(
+                "Please specify a day and outlook type, such as `/spc 1 cat`",
+                command['user_id'], command['channel_id'])
             return
         day = params[0].lower()
         try:
             day = int(day)
         except ValueError:
-            say("Day must be a number 1 and 8")
+            client.chat_postEphemeral(
+                "Day must be a number 1 and 8",
+                command['user_id'], command['channel_id'])
             return
         if day < 1 or day > 8:
-            say("Day must be between 1 and 8")
+            client.chat_postEphemeral(
+                "Day must be between 1 and 8",
+                command['user_id'], command['channel_id'])
             return
         outlook = params[1].lower()
 
         if day == 1 or day == 2:
             if outlook not in ["cat", "wind", "hail", "torn"]:
-                say(f"Outlook for day {day} must be one of `cat`, `prob`, `wind`, `hail`, or `torn`")
+                client.chat_postEphemeral(
+                    f"Outlook for day {day} must be one of `cat`, `wind`, `hail`, or `torn`",
+                    command['user_id'], command['channel_id'])
                 return
         elif day == 3:
             if outlook not in ["cat", "prob"]:
-                say("Outlook must be one of `cat` or `prob`")
+                client.chat_postEphemeral(
+                    f"Outlook for day {day} must be one of `cat` or `prob`",
+                    command['user_id'], command['channel_id'])
                 return
         elif day > 3:
             if outlook not in ["prob"]:
-                say("Outlook must be `prob`")
+                client.chat_postEphemeral(
+                    f"Outlook for day {day} must be `prob`",
+                    command['user_id'], command['channel_id'])
                 return
         outlook_name = None
         if outlook == "cat":
@@ -295,17 +321,10 @@ def spc_command(ack, say, command):
         say(f"Fetching latest SPC {outlook_name} Outlook for day {day}. Please be patient, this could take a few seconds.")
         image = _plot_spc_outlook(day=day, type=outlook)
         if not image:
-            say("Error generating image")
+            client.chat_postEphemeral(
+                "Error generating image",
+                command['user_id'], command['channel_id'])
             return
-        installation = None
-        res = Installation.query(command['team_id'])
-        if not res:
-            say("Installation not found.")
-            return
-        for res_ in res:
-            installation = res_
-            break
-        client = WebClient(token=installation.bot_token)
         client.files_upload_v2(
             channel=command['channel_id'],
             content=image,
