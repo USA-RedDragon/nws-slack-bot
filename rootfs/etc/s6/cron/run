@@ -1,0 +1,5 @@
+#!/bin/sh
+
+cd /app
+
+exec crond -f 2>&1
