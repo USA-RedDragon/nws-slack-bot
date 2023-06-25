@@ -1,5 +1,9 @@
 name: Terraform
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
 on:
   push:
   pull_request:
