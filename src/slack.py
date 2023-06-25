@@ -5,7 +5,7 @@ import traceback
 from .config import get_config
 from .orm import Installation
 from .map import plot_radar_lvl2_from_station
-from .spc_common import send_outlook_image
+from .spc_common import _plot_spc_outlook
 
 import boto3
 from slack_bolt import App
@@ -283,7 +283,26 @@ def spc_command(ack, say, command):
             outlook_name = "Unknown"
         # Send the user a friendly acknowledgement message and mention that the SPC images could take a few seconds to download and generate
         say(f"Fetching latest SPC  {outlook_name} Outlook for day {day}. Please be patient, this could take a few seconds.")
-        send_outlook_image(day=day, type=outlook)
+        image = _plot_spc_outlook(day=day, type=outlook)
+        if not image:
+            say("Error generating image")
+            return
+        installation = None
+        res = Installation.query(command['team_id'])
+        if not res:
+            say("Installation not found.")
+            return
+        for res_ in res:
+            installation = res_
+            break
+        client = WebClient(token=installation.bot_token)
+        client.files_upload_v2(
+            channel=command['channel_id'],
+            content=image,
+            title=f"SPC {outlook_name} Outlook for Day {day}",
+            filename=f"SPC-{outlook_name}-Outlook-Day-{day}-{str(time.time())}.png",
+            initial_comment=f"Here's the SPC {outlook_name} Outlook for Day {day}"
+        )
     except Exception as e:
         print(f"Error posting message: {e}")
         traceback.print_exception(*sys.exc_info())
