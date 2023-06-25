@@ -25,7 +25,6 @@ RUN apk add --virtual .build-deps \
     && rm -rf /tmp/* /var/cache/apk/*
 
 
-COPY src/ src/
 COPY scripts/ scripts/
 
 RUN python -m scripts.generate_all_images --output /app/.states -j64
@@ -68,6 +67,8 @@ RUN <<__EOF__
 # 4:00 AM CST
 (crontab -l 2>/dev/null; echo "05 10 * * * sh -c 'cd /app && python -m src.spc_day4-8 cst'") | crontab -
 __EOF__
+
+COPY src/ src/
 
 EXPOSE 80
 
