@@ -83,7 +83,7 @@ _nws_reflectivity_colors = matplotlib.colors.ListedColormap([
 ])
 
 
-def plot_radar(fig, ax, station, envelope=None, add_legend=True):
+def plot_radar(fig, ax, station, state, envelope=None, add_legend=True):
     # Define request for radar
     request = DataAccessLayer.newDataRequest('radar')
     request.setEnvelope(envelope)
@@ -95,33 +95,45 @@ def plot_radar(fig, ax, station, envelope=None, add_legend=True):
     if availableLevels:
         request.setLevels(availableLevels[0])
     else:
-        print("No levels found for " + "Composite Refl")
-
-    times = DataAccessLayer.getAvailableTimes(request)
-
-    if times:
-        response = DataAccessLayer.getGridData(request, [times[-1]])
-        print("Recs : ", len(response))
-
-        if response:
-            grid = response[0]
-        else:
+        print(f"No level 3 data found for Composite Refl at {station}")
+        obj = get_latest_radar_scan(station)
+        # Strip out the "yyyy/mm/dd/{station}/{station}" prefix and _V06 suffix to get the timestamp
+        regex = re.compile(r'\d{4}/\d{2}/\d{2}/' + station + '/' + station + r'(\d{8}_\d{6})_V06')
+        match = regex.match(obj.key)
+        if match is None:
+            print("Error parsing timestamp from key")
             return
-        data = grid.getRawData()
-        lons, lats = grid.getLatLonCoords()
+        timestamp = datetime.datetime.strptime(match.group(1), '%Y%m%d_%H%M%S')
+        f = Level2File(obj.get()['Body'])
+        plot_radar_from_file(state, f, timestamp)
+        return
 
-        print('Time :', str(grid.getDataTime()))
-        flat = np.ndarray.flatten(data)
-        print('Name :', str(grid.getLocationName()))
-        print('Prod :', str(grid.getParameter()))
-        print('Range:', np.nanmin(flat), " to ", np.nanmax(flat), " (Unit :", grid.getUnit(), ")")
-        print('Size :', str(data.shape))
-        print()
+    if availableLevels:
+        times = DataAccessLayer.getAvailableTimes(request)
 
-        cs = ax.pcolormesh(lons, lats, data, cmap=_nws_reflectivity_colors, zorder=4, alpha=0.8, norm=matplotlib.colors.Normalize(-30, 85))
-        if add_legend:
-            cbar = fig.colorbar(cs, extend='both', shrink=0.5, orientation='horizontal')
-            cbar.set_label("Reflectivity (dBZ) " + "Valid: " + str(grid.getDataTime().getRefTime()))
+        if times:
+            response = DataAccessLayer.getGridData(request, [times[-1]])
+            print("Recs : ", len(response))
+
+            if response:
+                grid = response[0]
+            else:
+                return
+            data = grid.getRawData()
+            lons, lats = grid.getLatLonCoords()
+
+            print('Time :', str(grid.getDataTime()))
+            flat = np.ndarray.flatten(data)
+            print('Name :', str(grid.getLocationName()))
+            print('Prod :', str(grid.getParameter()))
+            print('Range:', np.nanmin(flat), " to ", np.nanmax(flat), " (Unit :", grid.getUnit(), ")")
+            print('Size :', str(data.shape))
+            print()
+
+            cs = ax.pcolormesh(lons, lats, data, cmap=_nws_reflectivity_colors, zorder=4, alpha=0.8, norm=matplotlib.colors.Normalize(-30, 85))
+            if add_legend:
+                cbar = fig.colorbar(cs, extend='both', shrink=0.5, orientation='horizontal')
+                cbar.set_label("Reflectivity (dBZ) " + "Valid: " + str(grid.getDataTime().getRefTime()))
 
 
 def get_boundaries_from_polygon(poly):
@@ -189,7 +201,7 @@ def plot_alert_on_state(alert):
         fig = pickle.load(f)
     ax = fig.axes[0]
     if alert.should_show_radar():
-        plot_radar(fig, ax, get_closest_station(alert.polygon), envelope=envelope)
+        plot_radar(fig, ax, get_closest_station(alert.polygon), alert.state, envelope=envelope)
     alert.plot(ax)
     buf = io.BytesIO()
     plt.savefig(buf, format='png', bbox_inches='tight')
@@ -286,7 +298,7 @@ def plot_radar_from_station(state, station):
     with open(f".states/{state}.pickle", "rb") as f:
         fig = pickle.load(f)
     ax = fig.axes[0]
-    plot_radar(fig, ax, station, envelope=envelope)
+    plot_radar(fig, ax, station, state, envelope=envelope)
     buf = io.BytesIO()
     plt.savefig(buf, format='png', bbox_inches='tight')
     buf.seek(0)
@@ -308,7 +320,7 @@ def plot_all_state_alerts(state):
             closest_station = get_closest_station(alert.polygon)
             if closest_station not in seen_stations:
                 seen_stations.append(closest_station)
-                plot_radar(fig, ax, closest_station, envelope=envelope, add_legend=len(seen_stations) == 1)
+                plot_radar(fig, ax, closest_station, state, envelope=envelope, add_legend=len(seen_stations) == 1)
             else:
                 print("Skipping duplicate station: ", closest_station)
         alert.plot(ax)
@@ -334,7 +346,7 @@ def plot_all_state_alerts_one_at_a_time(state):
             closest_station = get_closest_station(alert.polygon)
             if closest_station not in seen_stations:
                 seen_stations.append(closest_station)
-                plot_radar(fig, ax, closest_station, envelope=envelope, add_legend=len(seen_stations) == 1)
+                plot_radar(fig, ax, closest_station, state, envelope=envelope, add_legend=len(seen_stations) == 1)
         alert.plot(ax)
         plt.show()
 
@@ -345,7 +357,7 @@ def plot_alert_area(alert):
     ax = fig.axes[0]
     _, alert_envelope = get_boundaries_from_polygon(alert.polygon)
     if alert.should_show_radar():
-        plot_radar(fig, ax, get_closest_station(alert.polygon), envelope=alert_envelope)
+        plot_radar(fig, ax, get_closest_station(alert.polygon), alert.state, envelope=alert_envelope)
     buf = io.BytesIO()
     plt.savefig(buf, format='png', bbox_inches='tight')
     buf.seek(0)
