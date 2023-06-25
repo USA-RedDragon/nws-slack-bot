@@ -14,7 +14,7 @@ import shapefile
 from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
 
-from orm import Installation
+from .orm import Installation
 
 matplotlib.use('Agg')
 

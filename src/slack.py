@@ -5,6 +5,7 @@ import traceback
 from .config import get_config
 from .orm import Installation
 from .map import plot_radar_lvl2_from_station
+from .spc_common import send_outlook_image
 
 import boto3
 from slack_bolt import App
@@ -241,3 +242,44 @@ def radar_command(ack, say, command):
         print(f"Error posting message: {e}")
         traceback.print_exception(*sys.exc_info())
         say("Error occurred while processing `/radar " + command['text'] + "`")
+
+
+@slack_app.command("/spc")
+def spc_command(ack, say, command):
+    ack()
+    try:
+        if 'text' not in command:
+            say("Please specify a day and the outlook type, such as `/spc 1 cat`")
+            return
+        params = command['text'].split(" ")
+        day = params[0].lower()
+        if day not in ["1", "2", "3", "4", "5", "6", "7", "8"]:
+            say("Day must be between 1 and 8")
+            return
+        if len(params) < 2:
+            say("Please specify an outlook type, such as `/spc 1 cat`")
+            return
+        outlook = params[1].lower()
+        if outlook not in ["cat", "prob", "wind", "hail", "torn"]:
+            say("Outlook must be one of `cat`, `prob`, `wind`, `hail`, or `torn`")
+            return
+        outlook_name = None
+        if outlook == "cat":
+            outlook_name = "Categorical"
+        elif outlook == "prob":
+            outlook_name = "Probabilistic"
+        elif outlook == "wind":
+            outlook_name = "Wind"
+        elif outlook == "hail":
+            outlook_name = "Hail"
+        elif outlook == "torn":
+            outlook_name = "Tornado"
+        else:
+            outlook_name = "Unknown"
+        # Send the user a friendly acknowledgement message and mention that the SPC images could take a few seconds to download and generate
+        say(f"Fetching latest SPC  {outlook_name} Outlook for day {day}. Please be patient, this could take a few seconds.")
+        send_outlook_image(day=day, type=outlook)
+    except Exception as e:
+        print(f"Error posting message: {e}")
+        traceback.print_exception(*sys.exc_info())
+        say("Error occurred while processing `/spc " + command['text'] + "`")
