@@ -256,18 +256,28 @@ def spc_command(ack, say, command):
             say("Please specify a day and outlook type, such as `/spc 1 cat`")
             return
         day = params[0].lower()
-        if day not in ["1", "2", "3", "4", "5", "6", "7", "8"]:
-            say("Day must be between 1 and 8")
-            return
         try:
             day = int(day)
         except ValueError:
+            say("Day must be a number 1 and 8")
+            return
+        if day < 1 or day > 8:
             say("Day must be between 1 and 8")
             return
         outlook = params[1].lower()
-        if outlook not in ["cat", "prob", "wind", "hail", "torn"]:
-            say("Outlook must be one of `cat`, `prob`, `wind`, `hail`, or `torn`")
-            return
+
+        if day == 1 or day == 2:
+            if outlook not in ["cat", "wind", "hail", "torn"]:
+                say(f"Outlook for day {day} must be one of `cat`, `prob`, `wind`, `hail`, or `torn`")
+                return
+        elif day == 3:
+            if outlook not in ["cat", "prob"]:
+                say("Outlook must be one of `cat` or `prob`")
+                return
+        elif day > 3:
+            if outlook not in ["prob"]:
+                say("Outlook must be `prob`")
+                return
         outlook_name = None
         if outlook == "cat":
             outlook_name = "Categorical"
