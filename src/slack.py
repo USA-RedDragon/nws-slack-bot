@@ -252,6 +252,9 @@ def spc_command(ack, say, command):
             say("Please specify a day and the outlook type, such as `/spc 1 cat`")
             return
         params = command['text'].split(" ")
+        if len(params) < 2:
+            say("Please specify a day and outlook type, such as `/spc 1 cat`")
+            return
         day = params[0].lower()
         if day not in ["1", "2", "3", "4", "5", "6", "7", "8"]:
             say("Day must be between 1 and 8")
@@ -260,9 +263,6 @@ def spc_command(ack, say, command):
             day = int(day)
         except ValueError:
             say("Day must be between 1 and 8")
-            return
-        if len(params) < 2:
-            say("Please specify an outlook type, such as `/spc 1 cat`")
             return
         outlook = params[1].lower()
         if outlook not in ["cat", "prob", "wind", "hail", "torn"]:
