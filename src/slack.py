@@ -282,7 +282,7 @@ def spc_command(ack, say, command):
         else:
             outlook_name = "Unknown"
         # Send the user a friendly acknowledgement message and mention that the SPC images could take a few seconds to download and generate
-        say(f"Fetching latest SPC  {outlook_name} Outlook for day {day}. Please be patient, this could take a few seconds.")
+        say(f"Fetching latest SPC {outlook_name} Outlook for day {day}. Please be patient, this could take a few seconds.")
         image = _plot_spc_outlook(day=day, type=outlook)
         if not image:
             say("Error generating image")
