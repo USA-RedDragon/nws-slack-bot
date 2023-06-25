@@ -1,5 +1,3 @@
-# This script shall generate pickled matplotlib figures of the 50 states containing rivers, lakes, highways, county borders, and state borders.
-
 import argparse
 import os
 import pickle
@@ -78,42 +76,29 @@ states = [
 
 def main():
     parser = argparse.ArgumentParser(description='Generate state base images')
-    parser.add_argument('--state', type=str, help='State to generate')
-    parser.add_argument("--all", action="store_true", help="Generate all states")
-    parser.add_argument("--load-and-view", action="store_true", help="Load and view the generated state")
+    parser.add_argument('--image', type=str, help='Image to generate')
     parser.add_argument("--output", type=str, help="Output directory")
     args = parser.parse_args()
 
     if not args.output:
         raise ValueError("Output directory not specified")
 
-    if not args.load_and_view:
-        matplotlib.use('Agg')
-    else:
-        if not args.state:
-            raise ValueError("State not specified")
-        with open(f"{args.output}/{args.state}.pickle", "rb") as f:
-            pickle.load(f)
-        plt.show()
-        return
+    matplotlib.use('Agg')
 
     if not os.path.exists(args.output):
         os.mkdir(args.output)
     elif not os.path.isdir(args.output):
         raise ValueError("Output is not a directory")
 
-    if args.all and not args.state:
+    if args.image == "US":
         generate_country(args.output)
         plt.close()
-        for state in states:
-            generate_state(state, args.output)
-            plt.close()
-    elif args.state:
-        if args.state not in states:
-            raise ValueError("Invalid state")
-        state = args.state.upper()
-        generate_state(state, args.output)
-        plt.close()
+        return
+    if args.image not in states:
+        raise ValueError("Invalid state")
+    state = args.image.upper()
+    generate_state(state, args.output)
+    plt.close()
 
 
 def plot_interstates(ax, envelope=None):

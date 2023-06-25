@@ -28,7 +28,7 @@ RUN apk add --virtual .build-deps \
 COPY src/ src/
 COPY scripts/ scripts/
 
-RUN python -m scripts.generate_state_images --output /app/.states --all
+RUN python -m scripts.generate_all_images --output /app/.states -j64
 
 ENV CONFIG_JSON ""
 
