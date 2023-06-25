@@ -218,7 +218,7 @@ def radar_command(ack, say, command):
     try:
         if 'text' not in command:
             client.chat_postEphemeral(
-                "Please specify a radar to view, such as `ktlx`, and optionally a two-digit state. For example, `/radar ktlx ok`.",
+                text="Please specify a radar to view, such as `ktlx`, and optionally a two-digit state. For example, `/radar ktlx ok`.",
                 user=command['user_id'], channel=command['channel_id'])
             return
         params = command['text'].split(" ")
@@ -228,7 +228,7 @@ def radar_command(ack, say, command):
             state = params[1].upper()
             valid, reason = is_state_valid(state)
             if not valid:
-                client.chat_postEphemeral(reason, user=command['user_id'], channel=command['channel_id'])
+                client.chat_postEphemeral(text=reason, user=command['user_id'], channel=command['channel_id'])
                 return
         if not state:
             state = installation.state
@@ -262,13 +262,13 @@ def spc_command(ack, say, command):
     try:
         if 'text' not in command:
             client.chat_postEphemeral(
-                "Please specify a day and the outlook type, such as `/spc 1 cat`",
+                text="Please specify a day and the outlook type, such as `/spc 1 cat`",
                 user=command['user_id'], channel=command['channel_id'])
             return
         params = command['text'].split(" ")
         if len(params) < 2:
             client.chat_postEphemeral(
-                "Please specify a day and outlook type, such as `/spc 1 cat`",
+                text="Please specify a day and outlook type, such as `/spc 1 cat`",
                 user=command['user_id'], channel=command['channel_id'])
             return
         day = params[0].lower()
@@ -276,12 +276,12 @@ def spc_command(ack, say, command):
             day = int(day)
         except ValueError:
             client.chat_postEphemeral(
-                "Day must be a number 1 and 8",
+                text="Day must be a number 1 and 8",
                 user=command['user_id'], channel=command['channel_id'])
             return
         if day < 1 or day > 8:
             client.chat_postEphemeral(
-                "Day must be between 1 and 8",
+                text="Day must be between 1 and 8",
                 user=command['user_id'], channel=command['channel_id'])
             return
         outlook = params[1].lower()
@@ -289,19 +289,19 @@ def spc_command(ack, say, command):
         if day == 1 or day == 2:
             if outlook not in ["cat", "wind", "hail", "torn"]:
                 client.chat_postEphemeral(
-                    f"Outlook for day {day} must be one of `cat`, `wind`, `hail`, or `torn`",
+                    text=f"Outlook for day {day} must be one of `cat`, `wind`, `hail`, or `torn`",
                     user=command['user_id'], channel=command['channel_id'])
                 return
         elif day == 3:
             if outlook not in ["cat", "prob"]:
                 client.chat_postEphemeral(
-                    f"Outlook for day {day} must be one of `cat` or `prob`",
+                    text=f"Outlook for day {day} must be one of `cat` or `prob`",
                     user=command['user_id'], channel=command['channel_id'])
                 return
         elif day > 3:
             if outlook not in ["prob"]:
                 client.chat_postEphemeral(
-                    f"Outlook for day {day} must be `prob`",
+                    text=f"Outlook for day {day} must be `prob`",
                     user=command['user_id'], channel=command['channel_id'])
                 return
         outlook_name = None
@@ -322,7 +322,7 @@ def spc_command(ack, say, command):
         image = _plot_spc_outlook(day=day, type=outlook)
         if not image:
             client.chat_postEphemeral(
-                "Error generating image",
+                text="Error generating image",
                 user=command['user_id'], channel=command['channel_id'])
             return
         client.files_upload_v2(
