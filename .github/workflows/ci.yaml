@@ -27,3 +27,5 @@ jobs:
         with:
           push: true
           tags: ghcr.io/usa-reddragon/nws-slack-bot:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
