@@ -256,6 +256,11 @@ def spc_command(ack, say, command):
         if day not in ["1", "2", "3", "4", "5", "6", "7", "8"]:
             say("Day must be between 1 and 8")
             return
+        try:
+            day = int(day)
+        except ValueError:
+            say("Day must be between 1 and 8")
+            return
         if len(params) < 2:
             say("Please specify an outlook type, such as `/spc 1 cat`")
             return
