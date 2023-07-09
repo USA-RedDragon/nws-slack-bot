@@ -1,4 +1,4 @@
-FROM python:3.11-alpine
+FROM ghcr.io/usa-reddragon/python-gis
 
 ENV PYTHONUNBUFFERED=1
 
@@ -6,24 +6,12 @@ WORKDIR /app
 
 COPY requirements.txt requirements.txt
 
-RUN apk add --virtual .build-deps \
-        build-base \
-        geos-dev \
-        proj-dev \
-        gfortran \
-        openblas-dev \
-    && apk add \
+RUN apk add --no-cache \
         ca-certificates \
         curl \
-        geos \
-        proj \
-        proj-util \
-        s6 \
-        openblas \
-    && pip install -r requirements.txt \
-    && apk del .build-deps \
-    && rm -rf /tmp/* /var/cache/apk/*
+        s6
 
+RUN pip install -r requirements.txt
 
 COPY scripts/ scripts/
 
