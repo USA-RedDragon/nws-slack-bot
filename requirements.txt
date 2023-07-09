@@ -8,7 +8,7 @@ gunicorn==20.1.0
 Flask==2.3.2
 aiohttp==3.8.4
 python-awips==18.1.11
-numpy==1.25.0
+numpy==1.25.1
 Cartopy==0.21.1
 adjustText==0.8
 MetPy==1.5.1
