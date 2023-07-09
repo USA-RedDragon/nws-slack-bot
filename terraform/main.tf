@@ -42,7 +42,7 @@ data "aws_availability_zones" "available_zones" {
 module "vpc" {
   source = "terraform-aws-modules/vpc/aws"
 
-  name = aws_kms_key.log-encryption.arn
+  name = local.name
   cidr = local.vpc_cidr
 
   azs = data.aws_availability_zones.available_zones.names
