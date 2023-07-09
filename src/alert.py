@@ -143,6 +143,8 @@ class WXAlert():
             return True
         elif isWx and self.event == "Flash Flood Statement":
             return True
+        elif isWx and self.event == "Flood Advisory":
+            return True
         elif isWx and self.event == "Flood Watch":
             return False
         elif isWx and self.event == "Flood Warning":
@@ -210,6 +212,8 @@ class WXAlert():
         elif self.event == "Flash Flood Warning":
             return True
         elif self.event == "Flash Flood Statement":
+            return True
+        elif self.event == "Flood Advisory":
             return True
         elif self.event == "Flood Watch":
             return True
