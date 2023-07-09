@@ -1,4 +1,4 @@
-name: ci
+name: Deploy
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -29,3 +29,23 @@ jobs:
           tags: ghcr.io/usa-reddragon/nws-slack-bot:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+  terraform:
+    needs: docker
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+
+      - name: Terraform Init
+        id: init
+        run: cd terraform && terraform init
+
+      - name: Terraform Apply
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: cd terraform && terraform apply -auto-approve -input=false
