@@ -11,7 +11,11 @@ RUN apk add --no-cache \
         curl \
         s6
 
-RUN pip install -r requirements.txt
+RUN apk add --virtual .build-deps \
+        build-base \
+    && pip install -r requirements.txt \
+    && apk del .build-deps \
+    && rm -rf /tmp/* /var/cache/apk/*
 
 COPY scripts/ scripts/
 
