@@ -9,7 +9,7 @@ Flask==2.3.2
 aiohttp==3.8.5
 python-awips==18.1.11
 numpy==1.25.2
-Cartopy==0.21.1
+Cartopy==0.22.0
 adjustText==0.8
 MetPy==1.5.1
 pyshp==2.3.1
