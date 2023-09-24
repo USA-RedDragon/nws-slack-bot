@@ -1,10 +1,8 @@
 terraform {
-  cloud {
-    organization = "Personal-McSwain"
-
-    workspaces {
-      name = "nws-slack-bot"
-    }
+  backend "s3" {
+    bucket = "mcswain-dev-tf-states"
+    key    = "nws-slack-bot"
+    region = "us-east-1"
   }
   required_providers {
     aws = {
