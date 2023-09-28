@@ -56,7 +56,12 @@ data "aws_ami" "ecs" {
 
   filter {
     name   = "name"
-    values = ["amzn2-ami-ecs-hvm-*-x86_64-ebs"]
+    values = ["amzn2-ami-ecs-hvm-*-*-ebs"]
+  }
+
+  filter {
+    name   = "architecture"
+    values = [var.arch]
   }
 
   owners = ["amazon"]

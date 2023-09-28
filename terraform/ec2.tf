@@ -1,6 +1,6 @@
 resource "aws_launch_template" "ecs" {
   name_prefix   = "${local.name}-ecs"
-  instance_type = "t3a.small"
+  instance_type = var.instance-type
   image_id      = data.aws_ami.ecs.id
   iam_instance_profile {
     arn = aws_iam_instance_profile.ecs-agent.arn

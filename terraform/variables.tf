@@ -3,6 +3,16 @@ variable "aws_region" {
   default = "us-east-1"
 }
 
+variable "instance-type" {
+  default     = "t4g.small"
+  description = "The AWS instance type to use for the infrastructure"
+}
+
+variable "arch" {
+  default     = "arm64"
+  description = "The CPU architecture to use for the infrastructure"
+}
+
 variable "docker_image" {
   type    = string
   default = "ghcr.io/usa-reddragon/nws-slack-bot:latest"
