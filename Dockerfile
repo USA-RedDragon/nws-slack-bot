@@ -1,4 +1,4 @@
-FROM ghcr.io/usa-reddragon/python-gis:latest@sha256:0840cc9c8fe763d6702a2fe16423fd97a677f71ba943626a331f79c06df9ce32
+FROM ghcr.io/usa-reddragon/python-gis:latest@sha256:f35c60888e697eb7f61730e67321ac6fac477632910dc478a2acaa04c867a7b1
 
 ENV PYTHONUNBUFFERED=1
 
@@ -6,16 +6,19 @@ WORKDIR /app
 
 COPY requirements.txt requirements.txt
 
-RUN apk add --no-cache \
-        ca-certificates \
-        curl \
-        s6
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update && \
+    apt-get -y --no-install-recommends install \
+      curl \
+      s6 \
+      cronie
 
-RUN apk add --virtual .build-deps \
-        build-base \
-    && pip install -r requirements.txt \
-    && apk del .build-deps \
-    && rm -rf /tmp/* /var/cache/apk/*
+RUN apt-get -y --no-install-recommends install \
+      build-essential && \
+    pip install -r /tmp/requirements.txt && \
+    apt-get remove -y \
+      build-essential && \
+    apt-get clean && rm -rf /tmp/setup /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 COPY scripts/ scripts/
 
