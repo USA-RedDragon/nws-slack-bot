@@ -11,7 +11,8 @@ RUN apt-get update && \
     apt-get -y --no-install-recommends install \
       curl \
       s6 \
-      cron
+      cron \
+      python3-aiohttp
 
 RUN apt-get -y --no-install-recommends install \
       build-essential && \
