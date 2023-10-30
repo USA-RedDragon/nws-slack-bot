@@ -11,7 +11,7 @@ RUN apt-get update && \
     apt-get -y --no-install-recommends install \
       curl \
       s6 \
-      cronie
+      cron
 
 RUN apt-get -y --no-install-recommends install \
       build-essential && \
