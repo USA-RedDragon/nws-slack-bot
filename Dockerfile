@@ -15,7 +15,7 @@ RUN apt-get update && \
 
 RUN apt-get -y --no-install-recommends install \
       build-essential && \
-    pip install -r /tmp/requirements.txt && \
+    pip install -r requirements.txt && \
     apt-get remove -y \
       build-essential && \
     apt-get clean && rm -rf /tmp/setup /var/lib/apt/lists/* /tmp/* /var/tmp/*
