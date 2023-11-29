@@ -1,6 +1,6 @@
 requests==2.31.0
 slack-bolt==1.18.1
-pynamodb==5.5.0
+pynamodb==5.5.1
 shapely==2.0.2
 matplotlib==3.8.2
 boto3==1.33.2
