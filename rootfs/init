@@ -9,6 +9,6 @@ if [ -z "$CONFIG_JSON" ]; then
 fi
 
 # Put CONFIG_JSON into config.json
-echo -e $CONFIG_JSON > /app/config.json
+echo $CONFIG_JSON > /app/config.json
 
 exec s6-svscan /etc/s6
