@@ -2,4 +2,4 @@
 
 cd /app
 
-exec crond -f 2>&1
+exec /usr/sbin/cron -f 2>&1
