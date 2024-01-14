@@ -10,7 +10,7 @@ aiohttp==3.9.1
 python-awips==20.1
 numpy==1.26.3
 Cartopy==0.22.0
-adjustText==0.8
+adjustText==1.0.4
 MetPy==1.6.1
 pyshp==2.3.1
 descartes==1.1.0
