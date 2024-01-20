@@ -1,10 +1,8 @@
 name: Deploy
 
 on:
-  workflow_dispatch:
   push:
-    branches:
-      - "main"
+    branches: ['main']
 
 permissions:
   id-token: write      # Required for aws-actions/configure-aws-credentials
@@ -20,33 +18,25 @@ env:
 
 jobs:
   docker:
+    uses: USA-RedDragon/reusable-actions/.github/workflows/docker-ci.yaml@v1.0.5
+    with:
+      push: ${{ github.event_name != 'pull_request' }}
+
+  var:
+    needs: docker
     runs-on: ubuntu-22.04
-    permissions:
-      packages: write
     steps:
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-        with:
-          platforms: arm64
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-      - name: Log in to GHCR
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Build and push
-        uses: docker/build-push-action@v5
-        with:
-          push: true
-          platforms: linux/amd64,linux/arm64
-          tags: ghcr.io/usa-reddragon/nws-slack-bot:${{ github.sha }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Output SHA
+        id: output
+        run: echo "TAG=sha-$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+    outputs:
+      TAG: ${{ steps.output.outputs.TAG }}
 
   terraform:
-    needs: docker
+    needs: var
     runs-on: ubuntu-22.04
     defaults:
       run:
@@ -74,4 +64,4 @@ jobs:
         run: terraform init
 
       - name: Terraform Apply
-        run: terraform apply -no-color -auto-approve -input=false -var-file=variables.tfvars -var docker_image="ghcr.io/usa-reddragon/nws-slack-bot:${{ github.sha }}"
+        run: terraform apply -no-color -auto-approve -input=false -var-file=variables.tfvars -var docker_image="ghcr.io/usa-reddragon/nws-slack-bot:${{ needs.var.outputs.TAG }}"
