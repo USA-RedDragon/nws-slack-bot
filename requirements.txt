@@ -14,4 +14,4 @@ adjustText==1.0.4
 MetPy==1.6.1
 pyshp==2.3.1
 descartes==1.1.0
-pytz==2023.3.post1
+pytz==2024.1
