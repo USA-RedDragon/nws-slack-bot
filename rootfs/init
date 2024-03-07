@@ -1,6 +1,6 @@
 #!/bin/sh
 
-set -e
+set -ex
 
 # Check env for CONFIG_JSON
 if [ -z "$CONFIG_JSON" ]; then
