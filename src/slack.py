@@ -75,6 +75,7 @@ oauth_settings = OAuthSettings(
     redirect_uri_path="/oauth_redirect",
     redirect_uri=get_config().get("server", "base_url") + "/oauth_redirect",
     installation_store=_installation_store,
+    install_page_rendering_enabled=False,
     state_store=_state_store,
     callback_options=CallbackOptions(success=_success, failure=_failure),
 )
