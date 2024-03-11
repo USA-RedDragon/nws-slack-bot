@@ -9,6 +9,6 @@ concurrency:
 
 jobs:
   docker:
-    uses: USA-RedDragon/reusable-actions/.github/workflows/docker-ci.yaml@v1.0.19
+    uses: USA-RedDragon/reusable-actions/.github/workflows/docker-ci.yaml@v1.0.20
     with:
       push: false
