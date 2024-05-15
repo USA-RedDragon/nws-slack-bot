@@ -6,15 +6,16 @@ WORKDIR /app
 
 COPY requirements.txt requirements.txt
 
-ENV DEBIAN_FRONTEND=noninteractive
-RUN apt-get update && \
+RUN export DEBIAN_FRONTEND=noninteractive && \
+    apt-get update && \
     apt-get -y --no-install-recommends install \
       curl \
       s6 \
       cron \
       python3-aiohttp
 
-RUN apt-get -y --no-install-recommends install \
+RUN export DEBIAN_FRONTEND=noninteractive && \
+    apt-get -y --no-install-recommends install \
       build-essential && \
     pip install -r requirements.txt && \
     apt-get remove -y \
