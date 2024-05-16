@@ -1,4 +1,4 @@
-FROM ghcr.io/usa-reddragon/python-gis:main@sha256:9788a235ef4f288d6c1a5c9e8c3edb93330ff686425dc1d50301b63d340a864c
+FROM ghcr.io/usa-reddragon/python-gis:main@sha256:b10bb7be33fcdd4e8fa01652fac6e449704a6fa6db1a033ad915efe7c2e07b50
 
 ENV PYTHONUNBUFFERED=1
 
