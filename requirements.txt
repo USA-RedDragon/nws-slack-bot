@@ -1,4 +1,4 @@
-requests==2.31.0
+requests==2.32.0
 slack-bolt==1.18.1
 pynamodb==6.0.0
 shapely==2.0.4
