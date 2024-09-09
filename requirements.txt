@@ -1,7 +1,7 @@
 requests==2.32.3
 slack-bolt==1.20.1
 pynamodb==6.0.1
-shapely==2.0.5
+shapely==2.0.6
 matplotlib==3.9.2
 boto3==1.35.15
 gunicorn==22.0.0
