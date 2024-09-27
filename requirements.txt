@@ -3,7 +3,7 @@ slack-bolt==1.20.1
 pynamodb==6.0.1
 shapely==2.0.6
 matplotlib==3.9.2
-boto3==1.35.26
+boto3==1.35.29
 gunicorn==22.0.0
 Flask==3.0.3
 aiohttp==3.10.6
