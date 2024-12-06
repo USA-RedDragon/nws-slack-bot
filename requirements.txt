@@ -6,7 +6,7 @@ matplotlib==3.9.3
 boto3==1.35.76
 gunicorn==23.0.0
 Flask==3.1.0
-aiohttp==3.11.9
+aiohttp==3.11.10
 python-awips==20.1
 numpy==1.26.4
 Cartopy==0.24.1
