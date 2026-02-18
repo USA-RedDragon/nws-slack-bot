@@ -32,7 +32,7 @@ jobs:
     - uses: hashicorp/setup-terraform@v3
 
     - name: Configure AWS Credentials
-      uses: aws-actions/configure-aws-credentials@v4
+      uses: aws-actions/configure-aws-credentials@7474bc4690e29a8392af63c5b98e7449536d5c3a # v4.3.1
       with:
         role-to-assume: arn:aws:iam::803205869942:role/github-actions-nws-slack-bot
         aws-region: us-east-1
