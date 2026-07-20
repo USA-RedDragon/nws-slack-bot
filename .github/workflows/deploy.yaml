@@ -18,7 +18,7 @@ jobs:
       contents: read
       packages: write
       security-events: write
-    uses: USA-RedDragon/reusable-actions/.github/workflows/docker-ci.yaml@v1.3.1
+    uses: USA-RedDragon/reusable-actions/.github/workflows/docker-ci.yaml@01dfa5b8bca8336ab047d196c367ef4cc9025432 # v1.3.1
     with:
       push: ${{ github.event_name != 'pull_request' }}
 
@@ -27,7 +27,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
       - name: Output SHA
         id: output
@@ -46,12 +46,12 @@ jobs:
         working-directory: ./terraform
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
-      - uses: hashicorp/setup-terraform@v3
+      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3
 
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@7474bc4690e29a8392af63c5b98e7449536d5c3a # v4
         with:
           role-to-assume: arn:aws:iam::803205869942:role/github-actions-nws-slack-bot
           aws-region: us-east-1
